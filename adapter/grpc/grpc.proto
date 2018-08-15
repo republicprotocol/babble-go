@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package grpc;
+
+service GossipService {
+    rpc Gossip(RumorRequest) returns (RumorResponse);
+}
+
+message RumorRequest {
+    bytes  signature = 1;
+    bytes  data = 2;
+    uint64 nonce = 3 ;
+}
+
+message RumorResponse {
+}
