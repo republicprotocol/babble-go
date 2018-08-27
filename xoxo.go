@@ -1,8 +1,8 @@
 package xoxo
 
 import (
-	"github.com/republicprotocol/republic-go/leveldb"
 	"github.com/republicprotocol/xoxo-go/adapter/grpc"
+	"github.com/republicprotocol/xoxo-go/adapter/leveldb"
 	"github.com/republicprotocol/xoxo-go/core/gossip"
 	"github.com/republicprotocol/xoxo-go/foundation"
 )
