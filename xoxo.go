@@ -7,19 +7,14 @@ import (
 	"github.com/republicprotocol/xoxo-go/foundation"
 )
 
-type Message foundation.Message
-
-type GossipClient gossip.Client
-
-type GossipServer gossip.Server
-
-type Gossiper gossip.Gossiper
+type (
+	Message  = foundation.Message
+	Gossiper = gossip.Gossiper
+)
 
 var (
 	NewRPCClient  = grpc.NewClient
 	NewRPCService = grpc.NewService
-
-	NewDB = leveldb.NewStore
-
-	NewGossiper = gossip.NewGossiper
+	NewDB         = leveldb.NewStore
+	NewGossiper   = gossip.NewGossiper
 )
