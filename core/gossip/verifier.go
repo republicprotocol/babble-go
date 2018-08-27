@@ -1,4 +1,4 @@
-package core
+package gossip
 
 // A Signer can consume bytes and produce a unique signature for those bytes.
 // This is usually done using the private key of an asymmetrical cryptography

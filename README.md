@@ -1,1 +1,3 @@
-# gossip-network
+# XOXO Gossip Protocol
+
+A simple gossip protocol.

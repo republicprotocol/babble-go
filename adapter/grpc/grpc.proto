@@ -2,15 +2,16 @@ syntax = "proto3";
 
 package grpc;
 
-service GossipService {
-    rpc Gossip(RumorRequest) returns (RumorResponse);
+service XoxoService {
+    rpc Broadcast(BroadcastRequest) returns (BroadcastResponse);
 }
 
-message RumorRequest {
-    bytes  signature = 1;
-    bytes  data = 2;
-    uint64 nonce = 3 ;
+message BroadcastRequest {
+    uint64 nonce     = 1;
+    bytes  key       = 2;
+    bytes  value     = 3;
+    bytes  signature = 4;
 }
 
-message RumorResponse {
+message BroadcastResponse {
 }
