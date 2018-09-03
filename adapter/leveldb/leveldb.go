@@ -101,6 +101,11 @@ func (store *Store) Message(key []byte) (foundation.Message, error) {
 	message := foundation.Message{}
 	data, err := store.db.Get(key, nil)
 	if err != nil {
+		if err == leveldb.ErrNotFound {
+			message.Nonce = 0
+			message.Key = key
+			err = nil
+		}
 		return message, err
 	}
 	if err := json.Unmarshal(data, &message); err != nil {
