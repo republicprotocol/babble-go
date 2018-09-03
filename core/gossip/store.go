@@ -7,8 +7,8 @@ import (
 )
 
 type AddrStore interface {
-	InsertAddress(address net.Addr) error
-	Addrs() ([]net.Addr, error)
+	InsertAddr(addr net.Addr) error
+	Addrs(α int) ([]net.Addr, error)
 }
 
 type MessageStore interface {

@@ -9,10 +9,12 @@ import (
 	"github.com/republicprotocol/xoxo-go/foundation"
 )
 
+// A Client sends Messages to a net.Addr.
 type Client interface {
 	Send(ctx context.Context, to net.Addr, message foundation.Message) error
 }
 
+// A Server receives Messages.
 type Server interface {
 	Receive(ctx context.Context, message foundation.Message) error
 }
@@ -23,14 +25,16 @@ type Gossiper interface {
 }
 
 type gossiper struct {
+	α        int
 	client   Client
 	verifier Verifier
 	addrs    AddrStore
 	messages MessageStore
 }
 
-func NewGossiper(client Client, verifier Verifier, addrs AddrStore, messages MessageStore) Gossiper {
+func NewGossiper(α int, client Client, verifier Verifier, addrs AddrStore, messages MessageStore) Gossiper {
 	return &gossiper{
+		α:        α,
 		client:   client,
 		verifier: verifier,
 		addrs:    addrs,
@@ -40,7 +44,7 @@ func NewGossiper(client Client, verifier Verifier, addrs AddrStore, messages Mes
 
 func (gossiper *gossiper) Broadcast(ctx context.Context, message foundation.Message) error {
 
-	addrs, err := gossiper.addrs.Addrs()
+	addrs, err := gossiper.addrs.Addrs(gossiper.α)
 	if err != nil {
 		return err
 	}
