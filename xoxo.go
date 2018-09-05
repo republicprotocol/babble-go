@@ -8,13 +8,13 @@ import (
 )
 
 type (
-	Message  = foundation.Message
 	Gossiper = gossip.Gossiper
+	Message  = foundation.Message
 )
 
 var (
+	NewGossiper   = gossip.NewGossiper
 	NewRPCClient  = grpc.NewClient
 	NewRPCService = grpc.NewService
-	NewDB         = leveldb.NewStore
-	NewGossiper   = gossip.NewGossiper
+	NewStore      = leveldb.NewStore
 )
