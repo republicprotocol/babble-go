@@ -1,6 +1,6 @@
 package foundation
 
-// A Message is a unit of data that can be broadcast throughout the network. A
+// A Message is a unit of data that can be broadcast throughout the network. An
 // outdated Message can be overwritten by broadcasting a newer Message with the
 // same `Key` but an incremented `Nonce`. Nodes in the network will discard the
 // lower `Nonce` Message in favour of the higher `Nonce` Message. A `Signature`
