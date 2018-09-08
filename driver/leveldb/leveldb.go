@@ -34,7 +34,10 @@ func (addr Addr) String() string {
 	return addr.Value
 }
 
-// A Store uses LevelDB to store Addrs and Messages to persistent storage.
+// A Store uses LevelDB to store Addrs and Messages to persistent storage. It is
+// a basic implementation of the `gossip.AddrStore` and `gossip.MessageStore`
+// with no explicit in-memory cache, and no optimisations for returning random
+// information.
 type Store struct {
 	db *leveldb.DB
 }
