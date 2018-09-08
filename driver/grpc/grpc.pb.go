@@ -8,8 +8,8 @@ It is generated from these files:
 	grpc.proto
 
 It has these top-level messages:
-	BroadcastRequest
-	BroadcastResponse
+	SendRequest
+	SendResponse
 */
 package grpc
 
@@ -33,57 +33,57 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
 
-type BroadcastRequest struct {
+type SendRequest struct {
 	Nonce     uint64 `protobuf:"varint,1,opt,name=nonce" json:"nonce,omitempty"`
 	Key       []byte `protobuf:"bytes,2,opt,name=key,proto3" json:"key,omitempty"`
 	Value     []byte `protobuf:"bytes,3,opt,name=value,proto3" json:"value,omitempty"`
 	Signature []byte `protobuf:"bytes,4,opt,name=signature,proto3" json:"signature,omitempty"`
 }
 
-func (m *BroadcastRequest) Reset()                    { *m = BroadcastRequest{} }
-func (m *BroadcastRequest) String() string            { return proto.CompactTextString(m) }
-func (*BroadcastRequest) ProtoMessage()               {}
-func (*BroadcastRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{0} }
+func (m *SendRequest) Reset()                    { *m = SendRequest{} }
+func (m *SendRequest) String() string            { return proto.CompactTextString(m) }
+func (*SendRequest) ProtoMessage()               {}
+func (*SendRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{0} }
 
-func (m *BroadcastRequest) GetNonce() uint64 {
+func (m *SendRequest) GetNonce() uint64 {
 	if m != nil {
 		return m.Nonce
 	}
 	return 0
 }
 
-func (m *BroadcastRequest) GetKey() []byte {
+func (m *SendRequest) GetKey() []byte {
 	if m != nil {
 		return m.Key
 	}
 	return nil
 }
 
-func (m *BroadcastRequest) GetValue() []byte {
+func (m *SendRequest) GetValue() []byte {
 	if m != nil {
 		return m.Value
 	}
 	return nil
 }
 
-func (m *BroadcastRequest) GetSignature() []byte {
+func (m *SendRequest) GetSignature() []byte {
 	if m != nil {
 		return m.Signature
 	}
 	return nil
 }
 
-type BroadcastResponse struct {
+type SendResponse struct {
 }
 
-func (m *BroadcastResponse) Reset()                    { *m = BroadcastResponse{} }
-func (m *BroadcastResponse) String() string            { return proto.CompactTextString(m) }
-func (*BroadcastResponse) ProtoMessage()               {}
-func (*BroadcastResponse) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{1} }
+func (m *SendResponse) Reset()                    { *m = SendResponse{} }
+func (m *SendResponse) String() string            { return proto.CompactTextString(m) }
+func (*SendResponse) ProtoMessage()               {}
+func (*SendResponse) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{1} }
 
 func init() {
-	proto.RegisterType((*BroadcastRequest)(nil), "grpc.BroadcastRequest")
-	proto.RegisterType((*BroadcastResponse)(nil), "grpc.BroadcastResponse")
+	proto.RegisterType((*SendRequest)(nil), "grpc.SendRequest")
+	proto.RegisterType((*SendResponse)(nil), "grpc.SendResponse")
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -97,7 +97,7 @@ const _ = grpc1.SupportPackageIsVersion4
 // Client API for XoxoService service
 
 type XoxoServiceClient interface {
-	Broadcast(ctx context.Context, in *BroadcastRequest, opts ...grpc1.CallOption) (*BroadcastResponse, error)
+	Send(ctx context.Context, in *SendRequest, opts ...grpc1.CallOption) (*SendResponse, error)
 }
 
 type xoxoServiceClient struct {
@@ -108,9 +108,9 @@ func NewXoxoServiceClient(cc *grpc1.ClientConn) XoxoServiceClient {
 	return &xoxoServiceClient{cc}
 }
 
-func (c *xoxoServiceClient) Broadcast(ctx context.Context, in *BroadcastRequest, opts ...grpc1.CallOption) (*BroadcastResponse, error) {
-	out := new(BroadcastResponse)
-	err := grpc1.Invoke(ctx, "/grpc.XoxoService/Broadcast", in, out, c.cc, opts...)
+func (c *xoxoServiceClient) Send(ctx context.Context, in *SendRequest, opts ...grpc1.CallOption) (*SendResponse, error) {
+	out := new(SendResponse)
+	err := grpc1.Invoke(ctx, "/grpc.XoxoService/Send", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -120,27 +120,27 @@ func (c *xoxoServiceClient) Broadcast(ctx context.Context, in *BroadcastRequest,
 // Server API for XoxoService service
 
 type XoxoServiceServer interface {
-	Broadcast(context.Context, *BroadcastRequest) (*BroadcastResponse, error)
+	Send(context.Context, *SendRequest) (*SendResponse, error)
 }
 
 func RegisterXoxoServiceServer(s *grpc1.Server, srv XoxoServiceServer) {
 	s.RegisterService(&_XoxoService_serviceDesc, srv)
 }
 
-func _XoxoService_Broadcast_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc1.UnaryServerInterceptor) (interface{}, error) {
-	in := new(BroadcastRequest)
+func _XoxoService_Send_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc1.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SendRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(XoxoServiceServer).Broadcast(ctx, in)
+		return srv.(XoxoServiceServer).Send(ctx, in)
 	}
 	info := &grpc1.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/grpc.XoxoService/Broadcast",
+		FullMethod: "/grpc.XoxoService/Send",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(XoxoServiceServer).Broadcast(ctx, req.(*BroadcastRequest))
+		return srv.(XoxoServiceServer).Send(ctx, req.(*SendRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -150,8 +150,8 @@ var _XoxoService_serviceDesc = grpc1.ServiceDesc{
 	HandlerType: (*XoxoServiceServer)(nil),
 	Methods: []grpc1.MethodDesc{
 		{
-			MethodName: "Broadcast",
-			Handler:    _XoxoService_Broadcast_Handler,
+			MethodName: "Send",
+			Handler:    _XoxoService_Send_Handler,
 		},
 	},
 	Streams:  []grpc1.StreamDesc{},
@@ -161,17 +161,16 @@ var _XoxoService_serviceDesc = grpc1.ServiceDesc{
 func init() { proto.RegisterFile("grpc.proto", fileDescriptor0) }
 
 var fileDescriptor0 = []byte{
-	// 177 bytes of a gzipped FileDescriptorProto
+	// 172 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0xe2, 0x4a, 0x2f, 0x2a, 0x48,
-	0xd6, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0x62, 0x01, 0xb1, 0x95, 0xf2, 0xb8, 0x04, 0x9c, 0x8a,
-	0xf2, 0x13, 0x53, 0x92, 0x13, 0x8b, 0x4b, 0x82, 0x52, 0x0b, 0x4b, 0x53, 0x8b, 0x4b, 0x84, 0x44,
-	0xb8, 0x58, 0xf3, 0xf2, 0xf3, 0x92, 0x53, 0x25, 0x18, 0x15, 0x18, 0x35, 0x58, 0x82, 0x20, 0x1c,
-	0x21, 0x01, 0x2e, 0xe6, 0xec, 0xd4, 0x4a, 0x09, 0x26, 0x05, 0x46, 0x0d, 0x9e, 0x20, 0x10, 0x13,
-	0xa4, 0xae, 0x2c, 0x31, 0xa7, 0x34, 0x55, 0x82, 0x19, 0x2c, 0x06, 0xe1, 0x08, 0xc9, 0x70, 0x71,
-	0x16, 0x67, 0xa6, 0xe7, 0x25, 0x96, 0x94, 0x16, 0xa5, 0x4a, 0xb0, 0x80, 0x65, 0x10, 0x02, 0x4a,
-	0xc2, 0x5c, 0x82, 0x48, 0xf6, 0x15, 0x17, 0xe4, 0xe7, 0x15, 0xa7, 0x1a, 0x79, 0x73, 0x71, 0x47,
-	0xe4, 0x57, 0xe4, 0x07, 0xa7, 0x16, 0x95, 0x65, 0x26, 0xa7, 0x0a, 0xd9, 0x70, 0x71, 0xc2, 0xd5,
-	0x08, 0x89, 0xe9, 0x81, 0xdd, 0x8c, 0xee, 0x48, 0x29, 0x71, 0x0c, 0x71, 0x88, 0x61, 0x49, 0x6c,
-	0x60, 0xef, 0x19, 0x03, 0x02, 0x00, 0x00, 0xff, 0xff, 0xaf, 0x53, 0x78, 0x77, 0xec, 0x00, 0x00,
-	0x00,
+	0xd6, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0x62, 0x01, 0xb1, 0x95, 0x32, 0xb9, 0xb8, 0x83, 0x53,
+	0xf3, 0x52, 0x82, 0x52, 0x0b, 0x4b, 0x53, 0x8b, 0x4b, 0x84, 0x44, 0xb8, 0x58, 0xf3, 0xf2, 0xf3,
+	0x92, 0x53, 0x25, 0x18, 0x15, 0x18, 0x35, 0x58, 0x82, 0x20, 0x1c, 0x21, 0x01, 0x2e, 0xe6, 0xec,
+	0xd4, 0x4a, 0x09, 0x26, 0x05, 0x46, 0x0d, 0x9e, 0x20, 0x10, 0x13, 0xa4, 0xae, 0x2c, 0x31, 0xa7,
+	0x34, 0x55, 0x82, 0x19, 0x2c, 0x06, 0xe1, 0x08, 0xc9, 0x70, 0x71, 0x16, 0x67, 0xa6, 0xe7, 0x25,
+	0x96, 0x94, 0x16, 0xa5, 0x4a, 0xb0, 0x80, 0x65, 0x10, 0x02, 0x4a, 0x7c, 0x5c, 0x3c, 0x10, 0xab,
+	0x8a, 0x0b, 0xf2, 0xf3, 0x8a, 0x53, 0x8d, 0x6c, 0xb8, 0xb8, 0x23, 0xf2, 0x2b, 0xf2, 0x83, 0x53,
+	0x8b, 0xca, 0x32, 0x93, 0x53, 0x85, 0x74, 0xb9, 0x58, 0x40, 0xd2, 0x42, 0x82, 0x7a, 0x60, 0x47,
+	0x22, 0xb9, 0x4a, 0x4a, 0x08, 0x59, 0x08, 0xa2, 0x3b, 0x89, 0x0d, 0xec, 0x0b, 0x63, 0x40, 0x00,
+	0x00, 0x00, 0xff, 0xff, 0x4b, 0x9a, 0x9d, 0xb3, 0xd3, 0x00, 0x00, 0x00,
 }

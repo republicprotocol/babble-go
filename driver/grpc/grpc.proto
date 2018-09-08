@@ -3,15 +3,15 @@ syntax = "proto3";
 package grpc;
 
 service XoxoService {
-    rpc Broadcast(BroadcastRequest) returns (BroadcastResponse);
+    rpc Send(SendRequest) returns (SendResponse);
 }
 
-message BroadcastRequest {
+message SendRequest {
     uint64 nonce     = 1;
     bytes  key       = 2;
     bytes  value     = 3;
     bytes  signature = 4;
 }
 
-message BroadcastResponse {
+message SendResponse {
 }

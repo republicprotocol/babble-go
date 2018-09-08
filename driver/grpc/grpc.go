@@ -75,7 +75,7 @@ func (client *client) Send(ctx context.Context, to net.Addr, message foundation.
 	}
 	defer conn.Close()
 
-	request := &BroadcastRequest{
+	request := &SendRequest{
 		Nonce:     message.Nonce,
 		Key:       message.Key,
 		Value:     message.Value,
@@ -83,7 +83,7 @@ func (client *client) Send(ctx context.Context, to net.Addr, message foundation.
 	}
 
 	return Backoff(ctx, func() (err error) {
-		_, err = NewXoxoServiceClient(conn).Broadcast(ctx, request)
+		_, err = NewXoxoServiceClient(conn).Send(ctx, request)
 		return
 	}, time.Minute)
 }
@@ -115,8 +115,8 @@ func (service *Service) Register(server *grpc.Server) {
 	RegisterXoxoServiceServer(server, service)
 }
 
-// Broadcast implements the respective gRPC call.
-func (service *Service) Broadcast(ctx context.Context, request *BroadcastRequest) (*BroadcastResponse, error) {
+// Send implements the respective gRPC call.
+func (service *Service) Send(ctx context.Context, request *SendRequest) (*SendResponse, error) {
 	if err := service.isRateLimited(ctx); err != nil {
 		return nil, err
 	}
@@ -126,7 +126,7 @@ func (service *Service) Broadcast(ctx context.Context, request *BroadcastRequest
 		Value:     request.Value,
 		Signature: request.Signature,
 	}
-	return &BroadcastResponse{}, service.server.Receive(ctx, message)
+	return &SendResponse{}, service.server.Receive(ctx, message)
 }
 
 func (service *Service) isRateLimited(ctx context.Context) error {
