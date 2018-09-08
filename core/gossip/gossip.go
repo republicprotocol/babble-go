@@ -11,11 +11,15 @@ import (
 
 // A Client sends Messages to a net.Addr.
 type Client interface {
+
+	// Send a `message` to the `to` address.
 	Send(ctx context.Context, to net.Addr, message foundation.Message) error
 }
 
 // A Server receives Messages.
 type Server interface {
+
+	// Receive a `message` from a client.
 	Receive(ctx context.Context, message foundation.Message) error
 }
 
