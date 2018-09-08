@@ -7,11 +7,15 @@ import (
 )
 
 type AddrStore interface {
-	InsertAddr(addr net.Addr) error
 	Addrs(α int) ([]net.Addr, error)
 }
 
 type MessageStore interface {
 	InsertMessage(message foundation.Message) error
 	Message(key []byte) (foundation.Message, error)
+}
+
+type Store interface {
+	AddrStore
+	MessageStore
 }

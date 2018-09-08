@@ -32,23 +32,21 @@ type gossiper struct {
 	α        int
 	client   Client
 	verifier Verifier
-	addrs    AddrStore
-	messages MessageStore
+	store    Store
 }
 
-func NewGossiper(α int, client Client, verifier Verifier, addrs AddrStore, messages MessageStore) Gossiper {
+func NewGossiper(α int, client Client, verifier Verifier, store Store) Gossiper {
 	return &gossiper{
 		α:        α,
 		client:   client,
 		verifier: verifier,
-		addrs:    addrs,
-		messages: messages,
+		store:    store,
 	}
 }
 
 func (gossiper *gossiper) Broadcast(ctx context.Context, message foundation.Message) error {
 
-	addrs, err := gossiper.addrs.Addrs(gossiper.α)
+	addrs, err := gossiper.store.Addrs(gossiper.α)
 	if err != nil {
 		return err
 	}
@@ -72,7 +70,7 @@ func (gossiper *gossiper) Receive(ctx context.Context, message foundation.Messag
 		return err
 	}
 
-	previousMessage, err := gossiper.messages.Message(message.Key)
+	previousMessage, err := gossiper.store.Message(message.Key)
 	if err != nil {
 		return err
 	}
@@ -81,7 +79,7 @@ func (gossiper *gossiper) Receive(ctx context.Context, message foundation.Messag
 		return nil
 	}
 
-	if err := gossiper.messages.InsertMessage(message); err != nil {
+	if err := gossiper.store.InsertMessage(message); err != nil {
 		return err
 	}
 
