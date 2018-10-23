@@ -77,7 +77,7 @@ func (store *Store) Addrs(α int) ([]net.Addr, error) {
 	addrs := make([]net.Addr, 0, α)
 	for iter.Next() {
 		addr := Addr{}
-		if err := json.Unmarshal(iter.Value(), &addr); err != nil {
+		if err := json.Unmarshal(iter.Key(), &addr); err != nil {
 			return nil, err
 		}
 		addrs = append(addrs, addr)
@@ -105,16 +105,13 @@ func (store *Store) Message(key []byte) (foundation.Message, error) {
 	data, err := store.db.Get(key, nil)
 	if err != nil {
 		if err == leveldb.ErrNotFound {
-			message.Nonce = 0
-			message.Key = key
 			err = nil
 		}
 		return message, err
 	}
-	if err := json.Unmarshal(data, &message); err != nil {
-		return message, err
-	}
-	return message, nil
+	err = json.Unmarshal(data, &message)
+
+	return message, err
 }
 
 func shuffle(values []net.Addr) {
