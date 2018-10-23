@@ -4,13 +4,11 @@ import (
 	"context"
 	"errors"
 	"net"
-	"sync"
 	"time"
 
 	"github.com/republicprotocol/xoxo-go/core/gossip"
 	"github.com/republicprotocol/xoxo-go/foundation"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/peer"
 )
 
 // ErrRateLimitExceeded is returned when a client has attempted to many requests
@@ -61,7 +59,7 @@ type client struct {
 
 // NewClient returns an implementation of the `gossip.Client` interface that
 // uses gRPC to invoke RPCs.
-func NewClient(addr net.Addr) gossip.Client {
+func NewClient() gossip.Client {
 	return &client{}
 }
 
@@ -92,21 +90,13 @@ func (client *client) Send(ctx context.Context, to net.Addr, message foundation.
 // delegates requests to a `gossip.Server` after enforcing rate limits.
 type Service struct {
 	server gossip.Server
-
-	rateLimitsMu *sync.Mutex
-	rateLimits   map[string]time.Time
-	rate         time.Duration
 }
 
 // NewService returns a Service that delegates requests to the `server` and uses
 // `rate` to enforce rate limits of all RPCs.
-func NewService(server gossip.Server, rate time.Duration) Service {
+func NewService(server gossip.Server) Service {
 	return Service{
 		server: server,
-
-		rateLimitsMu: new(sync.Mutex),
-		rateLimits:   make(map[string]time.Time),
-		rate:         rate,
 	}
 }
 
@@ -117,9 +107,6 @@ func (service *Service) Register(server *grpc.Server) {
 
 // Send implements the respective gRPC call.
 func (service *Service) Send(ctx context.Context, request *SendRequest) (*SendResponse, error) {
-	if err := service.isRateLimited(ctx); err != nil {
-		return nil, err
-	}
 	message := foundation.Message{
 		Nonce:     request.Nonce,
 		Key:       request.Key,
@@ -129,30 +116,3 @@ func (service *Service) Send(ctx context.Context, request *SendRequest) (*SendRe
 	return &SendResponse{}, service.server.Receive(ctx, message)
 }
 
-func (service *Service) isRateLimited(ctx context.Context) error {
-	client, ok := peer.FromContext(ctx)
-	if !ok {
-		return ErrMalformedTCPAddress
-	}
-	if client.Addr == net.Addr(nil) {
-		return ErrMalformedTCPAddress
-	}
-
-	clientAddr, ok := client.Addr.(*net.TCPAddr)
-	if !ok {
-		return ErrMalformedTCPAddress
-	}
-	clientIP := clientAddr.IP.String()
-
-	service.rateLimitsMu.Lock()
-	defer service.rateLimitsMu.Unlock()
-
-	if lastPing, ok := service.rateLimits[clientIP]; ok {
-		if service.rate > time.Since(lastPing) {
-			return ErrRateLimitExceeded
-		}
-	}
-
-	service.rateLimits[clientIP] = time.Now()
-	return nil
-}

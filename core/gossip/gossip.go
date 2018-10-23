@@ -45,7 +45,6 @@ func NewGossiper(α int, client Client, verifier Verifier, store Store) Gossiper
 }
 
 func (gossiper *gossiper) Broadcast(ctx context.Context, message foundation.Message) error {
-
 	addrs, err := gossiper.store.Addrs(gossiper.α)
 	if err != nil {
 		return err
@@ -74,7 +73,6 @@ func (gossiper *gossiper) Receive(ctx context.Context, message foundation.Messag
 	if err != nil {
 		return err
 	}
-
 	if previousMessage.Nonce >= message.Nonce {
 		return nil
 	}
@@ -82,7 +80,6 @@ func (gossiper *gossiper) Receive(ctx context.Context, message foundation.Messag
 	if err := gossiper.store.InsertMessage(message); err != nil {
 		return err
 	}
-
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()
 
