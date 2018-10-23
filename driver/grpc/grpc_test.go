@@ -40,7 +40,7 @@ var _ = Describe("grpc", func() {
 			gossiper := gossip.NewGossiper(α , clients[i], mockVerifier{}, store)
 			service := NewService(gossiper)
 			servers[i] = grpc.NewServer()
-			RegisterXoxoServiceServer(servers[i], &service)
+			service.Register(servers[i])
 
 			lis, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%v", 3000+i))
 			Expect(err).ShouldNot(HaveOccurred())
@@ -66,8 +66,8 @@ var _ = Describe("grpc", func() {
 	})
 
 
-	Context("when adding new address", func() {
-		It("should store new address", func() {
+	Context("when sending message via grpc", func() {
+		It("should receive the message and broadcast the message if it's new", func() {
 			numberOfTestObjects := 24
 			numberOfMessages := 24
 			clients, stores, servers, listens := initService(5, numberOfTestObjects)
@@ -96,7 +96,6 @@ var _ = Describe("grpc", func() {
 				Expect(err).ShouldNot(HaveOccurred())
 
 				Expect(clients[sender].Send(context.Background(), to, message)).ShouldNot(HaveOccurred())
-
 			}
 
 			time.Sleep(3 * time.Second)
