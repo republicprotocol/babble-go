@@ -20,7 +20,7 @@ import (
 
 var _ = Describe("grpc", func() {
 
-	initService := func(n int) ([]gossip.Client, []gossip.Store, []*grpc.Server, []net.Listener) {
+	initService := func(α , n int) ([]gossip.Client, []gossip.Store, []*grpc.Server, []net.Listener) {
 		clients := make([]gossip.Client, n)
 		stores := make([]gossip.Store, n)
 		servers := make([]*grpc.Server, n)
@@ -37,7 +37,7 @@ var _ = Describe("grpc", func() {
 			}
 			stores[i] = store
 
-			gossiper := gossip.NewGossiper(1+rand.Intn(5), clients[i], mockVerifier{}, store)
+			gossiper := gossip.NewGossiper(α , clients[i], mockVerifier{}, store)
 			service := NewService(gossiper)
 			servers[i] = grpc.NewServer()
 			RegisterXoxoServiceServer(servers[i], &service)
@@ -65,11 +65,12 @@ var _ = Describe("grpc", func() {
 		rand.Seed(time.Now().UnixNano())
 	})
 
+
 	Context("when adding new address", func() {
 		It("should store new address", func() {
 			numberOfTestObjects := 24
 			numberOfMessages := 24
-			clients, stores, servers, listens := initService(numberOfTestObjects)
+			clients, stores, servers, listens := initService(5, numberOfTestObjects)
 			defer stopService(servers, listens)
 
 			for i := range servers {
@@ -81,9 +82,11 @@ var _ = Describe("grpc", func() {
 				}(i)
 			}
 
+			// Send message
 			messages := make([]foundation.Message, 0, numberOfMessages)
 			for i := 0; i < numberOfMessages; i++ {
 				message := randomMessage()
+				message.Key = []byte{}
 				messages = append(messages, message)
 				sender, receiver := rand.Intn(numberOfTestObjects), rand.Intn(numberOfTestObjects)
 				for sender == receiver {
@@ -98,12 +101,13 @@ var _ = Describe("grpc", func() {
 
 			time.Sleep(3 * time.Second)
 
+			// Check how many nodes have got the message
 			for _, message := range messages {
 				received := 0
 				for _, store := range stores {
 					msg, err := store.Message(message.Key)
 					Expect(err).ShouldNot(HaveOccurred())
-					if len(msg.Key) > 0 {
+					if msg.Nonce > 0 {
 						received++
 					}
 				}
@@ -163,6 +167,7 @@ func (store mockStore) InsertMessage(message foundation.Message) error {
 	store.messageMu.Lock()
 	defer store.messageMu.Unlock()
 	store.messages[string(message.Key)] = message
+
 	return nil
 }
 
