@@ -1,7 +1,6 @@
 package leveldb_test
 
 import (
-	"github.com/republicprotocol/xoxo-go/foundation"
 	"math/rand"
 	"os"
 	"reflect"
@@ -10,6 +9,8 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	. "github.com/republicprotocol/xoxo-go/driver/leveldb"
+
+	"github.com/republicprotocol/xoxo-go/foundation"
 )
 
 const dbDir = "./tmp"
