@@ -68,7 +68,7 @@ var _ = Describe("grpc", func() {
 
 	Context("when sending message via grpc", func() {
 		It("should receive the message and broadcast the message if it's new", func() {
-			numberOfTestObjects := 24
+			numberOfTestObjects := 48
 			numberOfMessages := 24
 			clients, stores, servers, listens := initService(5, numberOfTestObjects)
 			defer stopService(servers, listens)
@@ -97,8 +97,7 @@ var _ = Describe("grpc", func() {
 
 				Expect(clients[sender].Send(context.Background(), to, message)).ShouldNot(HaveOccurred())
 			}
-
-			time.Sleep(3 * time.Second)
+			time.Sleep(10 * time.Millisecond)
 
 			// Check how many nodes have got the message
 			for _, message := range messages {
@@ -110,7 +109,7 @@ var _ = Describe("grpc", func() {
 						received++
 					}
 				}
-				Expect(received).Should(BeNumerically(">=", numberOfTestObjects*4/5))
+				Expect(received).Should(BeNumerically(">=", numberOfTestObjects* 9/10))
 				log.Printf("Total: %v ,received : %v", numberOfTestObjects, received)
 			}
 		})
