@@ -65,55 +65,69 @@ var _ = Describe("grpc", func() {
 		rand.Seed(time.Now().UnixNano())
 	})
 
-
-	Context("when sending message via grpc", func() {
-		It("should receive the message and broadcast the message if it's new", func() {
-			numberOfTestObjects := 48
-			numberOfMessages := 24
-			clients, stores, servers, listens := initService(5, numberOfTestObjects)
-			defer stopService(servers, listens)
-
-			for i := range servers {
-				go func(i int) {
-					defer GinkgoRecover()
-
-					err := servers[i].Serve(listens[i])
-					Expect(err).ShouldNot(HaveOccurred())
-				}(i)
-			}
-
-			// Send message
-			messages := make([]foundation.Message, 0, numberOfMessages)
-			for i := 0; i < numberOfMessages; i++ {
-				message := randomMessage()
-				message.Key = []byte{}
-				messages = append(messages, message)
-				sender, receiver := rand.Intn(numberOfTestObjects), rand.Intn(numberOfTestObjects)
-				for sender == receiver {
-					receiver = rand.Intn(numberOfTestObjects)
+	for _, failureRate := range []int{0, 10, 20, 30}{ // percentage
+		failureRate := failureRate
+		Context("when sending message via grpc", func() {
+			It("should receive the message and broadcast the message if it's new", func() {
+				numberOfTestNodes := 48
+				numberOfMessages := 12
+				numberOfFaultyNodes := numberOfTestNodes * failureRate / 100
+				shuffle := rand.Perm(numberOfTestNodes)[:numberOfFaultyNodes]
+				faultyNodes := map[int]struct{}{}
+				for _, index := range shuffle{
+					faultyNodes[index] = struct{}{}
 				}
-				to, err := net.ResolveTCPAddr("tcp", fmt.Sprintf("0.0.0.0:%v", 3000+receiver))
-				Expect(err).ShouldNot(HaveOccurred())
 
-				Expect(clients[sender].Send(context.Background(), to, message)).ShouldNot(HaveOccurred())
-			}
-			time.Sleep(10 * time.Millisecond)
+				clients, stores, servers, listens := initService(5, numberOfTestNodes)
+				defer stopService(servers, listens)
 
-			// Check how many nodes have got the message
-			for _, message := range messages {
-				received := 0
-				for _, store := range stores {
-					msg, err := store.Message(message.Key)
-					Expect(err).ShouldNot(HaveOccurred())
-					if msg.Nonce > 0 {
-						received++
+				for i := range servers {
+					go func(i int) {
+						defer GinkgoRecover()
+
+						if _, ok := faultyNodes[i]; ok {
+							return
+						}
+
+						err := servers[i].Serve(listens[i])
+						Expect(err).ShouldNot(HaveOccurred())
+					}(i)
+				}
+
+				// Send message
+				messages := make([]foundation.Message, 0, numberOfMessages)
+				for i := 0; i < numberOfMessages; i++ {
+					message := randomMessage()
+					message.Key = []byte{}
+					messages = append(messages, message)
+					sender, receiver := rand.Intn(numberOfTestNodes), rand.Intn(numberOfTestNodes)
+					for sender == receiver {
+						receiver = rand.Intn(numberOfTestNodes)
 					}
+					to, err := net.ResolveTCPAddr("tcp", fmt.Sprintf("0.0.0.0:%v", 3000+receiver))
+					Expect(err).ShouldNot(HaveOccurred())
+					ctx, cancel := context.WithTimeout(context.Background(), 1 * time.Second)
+					defer cancel()
+					clients[sender].Send(ctx, to, message)
 				}
-				Expect(received).Should(BeNumerically(">=", numberOfTestObjects* 9/10))
-				log.Printf("Total: %v ,received : %v", numberOfTestObjects, received)
-			}
+				time.Sleep(100 * time.Millisecond)
+
+				// Check how many nodes have got the message
+				for _, message := range messages {
+					received := 0
+					for _, store := range stores {
+						msg, err := store.Message(message.Key)
+						Expect(err).ShouldNot(HaveOccurred())
+						if msg.Nonce > 0 {
+							received++
+						}
+					}
+					Expect(received).Should(BeNumerically(">=", numberOfTestNodes* (99 - failureRate) / 100))
+					log.Printf("Total: %v ,received : %v", numberOfTestNodes, received)
+				}
+			})
 		})
-	})
+	}
 })
 
 // A mock verifier will always return true when verifying signature.
