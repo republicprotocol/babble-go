@@ -115,4 +115,3 @@ func (service *Service) Send(ctx context.Context, request *SendRequest) (*SendRe
 	}
 	return &SendResponse{}, service.server.Receive(ctx, message)
 }
-
