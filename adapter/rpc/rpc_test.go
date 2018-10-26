@@ -20,7 +20,7 @@ import (
 
 var _ = Describe("grpc", func() {
 
-	initService := func(α , n int) ([]gossip.Client, []gossip.Store, []*grpc.Server, []net.Listener) {
+	initService := func(α, n int) ([]gossip.Client, []gossip.Store, []*grpc.Server, []net.Listener) {
 		clients := make([]gossip.Client, n)
 		stores := make([]gossip.Store, n)
 		servers := make([]*grpc.Server, n)
@@ -37,7 +37,7 @@ var _ = Describe("grpc", func() {
 			}
 			stores[i] = store
 
-			gossiper := gossip.NewGossiper(α , clients[i], mockVerifier{}, store)
+			gossiper := gossip.NewGossiper(α, clients[i], mockVerifier{}, store)
 			service := NewService(gossiper)
 			servers[i] = grpc.NewServer()
 			service.Register(servers[i])
@@ -65,7 +65,7 @@ var _ = Describe("grpc", func() {
 		rand.Seed(time.Now().UnixNano())
 	})
 
-	for _, failureRate := range []int{0, 10, 20, 30}{ // percentage
+	for _, failureRate := range []int{0, 10, 20} { // percentage
 		failureRate := failureRate
 		Context("when sending message via grpc", func() {
 			It("should receive the message and broadcast the message if it's new", func() {
@@ -73,19 +73,19 @@ var _ = Describe("grpc", func() {
 				numberOfMessages := 12
 				numberOfFaultyNodes := numberOfTestNodes * failureRate / 100
 				shuffle := rand.Perm(numberOfTestNodes)[:numberOfFaultyNodes]
-				faultyNodes := map[int]struct{}{}
-				for _, index := range shuffle{
-					faultyNodes[index] = struct{}{}
+				faultyNodes := map[int]bool{}
+				for _, index := range shuffle {
+					faultyNodes[index] = true
 				}
 
-				clients, stores, servers, listens := initService(5, numberOfTestNodes)
+				clients, stores, servers, listens := initService(6, numberOfTestNodes)
 				defer stopService(servers, listens)
 
 				for i := range servers {
 					go func(i int) {
 						defer GinkgoRecover()
 
-						if _, ok := faultyNodes[i]; ok {
+						if faultyNodes[i] {
 							return
 						}
 
@@ -98,15 +98,23 @@ var _ = Describe("grpc", func() {
 				messages := make([]foundation.Message, 0, numberOfMessages)
 				for i := 0; i < numberOfMessages; i++ {
 					message := randomMessage()
-					message.Key = []byte{}
 					messages = append(messages, message)
 					sender, receiver := rand.Intn(numberOfTestNodes), rand.Intn(numberOfTestNodes)
-					for sender == receiver {
+					for {
+						if !faultyNodes[sender] {
+							break
+						}
+						sender = rand.Intn(numberOfTestNodes)
+					}
+					for {
+						if !faultyNodes[receiver] && sender != receiver {
+							break
+						}
 						receiver = rand.Intn(numberOfTestNodes)
 					}
 					to, err := net.ResolveTCPAddr("tcp", fmt.Sprintf("0.0.0.0:%v", 3000+receiver))
 					Expect(err).ShouldNot(HaveOccurred())
-					ctx, cancel := context.WithTimeout(context.Background(), 1 * time.Second)
+					ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 					defer cancel()
 					clients[sender].Send(ctx, to, message)
 				}
@@ -122,8 +130,9 @@ var _ = Describe("grpc", func() {
 							received++
 						}
 					}
-					Expect(received).Should(BeNumerically(">=", numberOfTestNodes* (99 - failureRate) / 100))
-					log.Printf("Total: %v ,received : %v", numberOfTestNodes, received)
+
+					Expect(received).Should(BeNumerically(">=", (numberOfTestNodes-numberOfFaultyNodes)*9/10))
+					log.Printf("Total: %v ,received : %v", numberOfTestNodes-numberOfFaultyNodes, received)
 				}
 			})
 		})
