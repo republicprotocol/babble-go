@@ -16,7 +16,7 @@ import (
 const dbDir = "./tmp"
 const dbFile = "./tmp/db"
 
-var _ = Describe("leveldb storage", func() {
+var _ = Describe("LevelDB storage", func() {
 
 	BeforeEach(func() {
 		rand.Seed(time.Now().UnixNano())

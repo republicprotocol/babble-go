@@ -1,4 +1,5 @@
-package leveldb
+// TODO: Rename package to db.
+package db
 
 import (
 	"encoding/json"
@@ -6,6 +7,7 @@ import (
 	"net"
 	"time"
 
+	"github.com/republicprotocol/xoxo-go/core/gossip"
 	"github.com/republicprotocol/xoxo-go/foundation"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/util"
@@ -44,17 +46,8 @@ type Store struct {
 
 // NewStore returns a new Store. A call to `Store.Close` is required to release
 // all resources.
-func NewStore(dir string) (*Store, error) {
-	db, err := leveldb.OpenFile(dir, nil)
-	if err != nil {
-		return nil, err
-	}
-	return &Store{db: db}, nil
-}
-
-// Close the Store and release all resources.
-func (store *Store) Close() error {
-	return store.db.Close()
+func NewStore(db *leveldb.DB) gossip.Store {
+	return &Store{db}, nil
 }
 
 // InsertAddr implements the `gossip.AddrStore` interface.
