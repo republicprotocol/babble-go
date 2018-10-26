@@ -1,4 +1,4 @@
-package foundation
+package gossip
 
 // A Message is a unit of data that can be disseminated throughout the network.
 // An outdated Message can be overwritten by disseminating a newer Message with

@@ -5,14 +5,13 @@ import (
 	"net"
 
 	"github.com/republicprotocol/co-go"
-	"github.com/republicprotocol/xoxo-go/foundation"
 )
 
 // A Client is used to send Messages to a remote Server.
 type Client interface {
 
 	// Send a Message to the a remote `net.Addr`.
-	Send(ctx context.Context, to net.Addr, message foundation.Message) error
+	Send(ctx context.Context, to net.Addr, message Message) error
 }
 
 // A Server receives Messages.
@@ -20,12 +19,12 @@ type Server interface {
 
 	// Receive is called to notify the Server that a Message has been received
 	// from a remote Client.
-	Receive(ctx context.Context, message foundation.Message) error
+	Receive(ctx context.Context, message Message) error
 }
 
 type Gossiper interface {
 	Server
-	Broadcast(ctx context.Context, message foundation.Message) error
+	Broadcast(ctx context.Context, message Message) error
 }
 
 type gossiper struct {
@@ -45,7 +44,7 @@ func NewGossiper(α int, client Client, signer Signer, verifier Verifier, store 
 	}
 }
 
-func (gossiper *gossiper) Broadcast(ctx context.Context, message foundation.Message) error {
+func (gossiper *gossiper) Broadcast(ctx context.Context, message Message) error {
 	signature, err := gossiper.signer.Sign(message.Value)
 	if err != nil {
 		return err
@@ -70,7 +69,7 @@ func (gossiper *gossiper) Broadcast(ctx context.Context, message foundation.Mess
 	return nil
 }
 
-func (gossiper *gossiper) Receive(ctx context.Context, message foundation.Message) error {
+func (gossiper *gossiper) Receive(ctx context.Context, message Message) error {
 	if err := gossiper.verifier.Verify(message.Value, message.Signature); err != nil {
 		return err
 	}

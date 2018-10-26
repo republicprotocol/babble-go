@@ -3,8 +3,6 @@ package gossip
 import (
 	"errors"
 	"net"
-
-	"github.com/republicprotocol/xoxo-go/foundation"
 )
 
 // ErrMessageNotFound is returned when there is no Message associated with a
@@ -25,10 +23,10 @@ type Messages interface {
 	// InsertMessage into the store. If there is an existing Message with the
 	// same key, but a lower nonce, then the existing Message will be
 	// overwritten.
-	InsertMessage(message foundation.Message) error
+	InsertMessage(message Message) error
 
 	// Message returns a previously inserted Message associated with the key.
-	Message(key []byte) (foundation.Message, error)
+	Message(key []byte) (Message, error)
 }
 
 // A Store of Addrs and Messages.
