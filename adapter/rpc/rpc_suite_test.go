@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestGrpc(t *testing.T) {
+func TestRPC(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Grpc Suite")
+	RunSpecs(t, "RPC Suite")
 }

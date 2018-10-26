@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package grpc;
 
-service XoxoService {
+service Xoxo {
     rpc Send(SendRequest) returns (SendResponse);
 }
 
