@@ -12,6 +12,6 @@ type Message struct {
 	Signature []byte `json:"signature"`
 }
 
-func NewMessage(nonce uint64, key, value []byte) Message {
-	return Message{nonce, key, value, nil}
+func NewMessage(nonce uint64, key, value, signature []byte) Message {
+	return Message{nonce, key, value, signature}
 }

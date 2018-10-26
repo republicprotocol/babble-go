@@ -1,6 +1,7 @@
 package addr
 
 import (
+	"math/rand"
 	"net"
 	"sync"
 )
@@ -25,21 +26,35 @@ type Book interface {
 }
 
 type book struct {
-	addrsMu *sync.RWMutex
-	addrs   Addrs
+	addrsMu    *sync.RWMutex
+	addrsCache []net.Addr
+	addrs      Addrs
 }
 
 func NewBook(addrs Addrs) Book {
 	return &book{
-		addrsMu: new(sync.RWMutex),
-		addrs:   addrs,
+		addrsMu:    new(sync.RWMutex),
+		addrsCache: make([]net.Addr, 0),
+		addrs:      addrs,
 	}
 }
 
 func (book *book) InsertAddr(addr net.Addr) error {
-	panic("unimplemented")
+	book.addrsMu.Lock()
+	defer book.addrsMu.Unlock()
+
+	book.addrsCache = append(book.addrsCache, addr)
+	return book.addrs.InsertAddr(addr)
 }
 
 func (book *book) Addrs(α int) ([]net.Addr, error) {
-	panic("unimplemented")
+	book.addrsMu.RLock()
+	defer book.addrsMu.RUnlock()
+
+	addrs := make([]net.Addr, 0, α)
+	for i := range rand.Perm(len(book.addrsCache))[:α] {
+		addrs = append(addrs, book.addrsCache[i])
+	}
+
+	return addrs, nil
 }

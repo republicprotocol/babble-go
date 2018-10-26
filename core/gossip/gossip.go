@@ -7,6 +7,24 @@ import (
 	"github.com/republicprotocol/co-go"
 )
 
+// A Signer can consume bytes and produce a signature for those bytes. This
+// signature can be used by a Verifier to extract the signatory.
+type Signer interface {
+	Sign(data []byte) ([]byte, error)
+}
+
+// A Verifier can consume bytes and a signature for those bytes, and extract
+// the signatory.
+type Verifier interface {
+	Verify(data []byte, signature []byte) error
+}
+
+// An Observer is notified whenever a new Message, or an update to an existing
+// Message, is received.
+type Observer interface {
+	Notify(message Message)
+}
+
 // A Client is used to send Messages to a remote Server.
 type Client interface {
 
@@ -28,45 +46,25 @@ type Gossiper interface {
 }
 
 type gossiper struct {
-	α        int
-	client   Client
 	signer   Signer
 	verifier Verifier
+	observer Observer
+	client   Client
 	store    Store
 }
 
-func NewGossiper(α int, client Client, signer Signer, verifier Verifier, store Store) Gossiper {
+func NewGossiper(signer Signer, verifier Verifier, observer Observer, client Client, store Store) Gossiper {
 	return &gossiper{
-		α:        α,
-		client:   client,
+		signer:   signer,
 		verifier: verifier,
+		observer: observer,
+		client:   client,
 		store:    store,
 	}
 }
 
 func (gossiper *gossiper) Broadcast(ctx context.Context, message Message) error {
-	signature, err := gossiper.signer.Sign(message.Value)
-	if err != nil {
-		return err
-	}
-	message.Signature = signature
-
-	addrs, err := gossiper.store.Addrs(gossiper.α)
-	if err != nil {
-		return err
-	}
-
-	errs := make([]error, len(addrs))
-	co.ForAll(addrs, func(i int) {
-		errs[i] = gossiper.client.Send(ctx, addrs[i], message)
-	})
-
-	for i := range errs {
-		if errs[i] != nil {
-			return errs[i]
-		}
-	}
-	return nil
+	return gossiper.broadcast(ctx, message, true)
 }
 
 func (gossiper *gossiper) Receive(ctx context.Context, message Message) error {
@@ -85,5 +83,36 @@ func (gossiper *gossiper) Receive(ctx context.Context, message Message) error {
 		return err
 	}
 
-	return gossiper.Broadcast(ctx, message)
+	if gossiper.observer != nil {
+		gossiper.observer.Notify(message)
+	}
+
+	return gossiper.broadcast(ctx, message, false)
+}
+
+func (gossiper *gossiper) broadcast(ctx context.Context, message Message, sign bool) error {
+	if sign {
+		signature, err := gossiper.signer.Sign(message.Value)
+		if err != nil {
+			return err
+		}
+		message.Signature = signature
+	}
+
+	addrs, err := gossiper.store.Addrs()
+	if err != nil {
+		return err
+	}
+
+	errs := make([]error, len(addrs))
+	co.ForAll(addrs, func(i int) {
+		errs[i] = gossiper.client.Send(ctx, addrs[i], message)
+	})
+
+	for i := range errs {
+		if errs[i] != nil {
+			return errs[i]
+		}
+	}
+	return nil
 }
