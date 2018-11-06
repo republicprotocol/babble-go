@@ -18,7 +18,7 @@ func init() {
 	rand.Seed(time.Now().Unix())
 }
 
-var _ = Describe("Addrs", func() {
+var _ = Describe("Store", func() {
 
 	newEmptyBook := func() Book {
 		addrs := newMockAddrs()
@@ -58,7 +58,7 @@ var _ = Describe("Addrs", func() {
 
 	Context("when looking up addresses", func() {
 
-		It("should be able to return α random addresses when initialized with an empty Addrs", func() {
+		It("should be able to return α random addresses when initialized with an empty Store", func() {
 			book := newEmptyBook()
 			lookupMap := map[string]int{}
 			numberOfTestAddrs := 100
@@ -71,7 +71,7 @@ var _ = Describe("Addrs", func() {
 			testRetreivingAddrs(book, numberOfTestAddrs, lookupMap)
 		})
 
-		It("should be able to return α random addresses when initialized with an non-empty Addrs", func() {
+		It("should be able to return α random addresses when initialized with an non-empty Store", func() {
 			addrs := newMockAddrs()
 			lookupMap := map[string]int{}
 			numberOfTestAddrs := 100
@@ -143,25 +143,25 @@ var _ = Describe("Addrs", func() {
 
 })
 
-// mockAddrs is a mock implementation of the `addr.Addr`
-type mockAddrs struct {
+// mockStore is a mock implementation of the `addr.Store`
+type mockStore struct {
 	addresses map[string]net.Addr
 }
 
-func newMockAddrs() Addrs {
-	return mockAddrs{
+func newMockAddrs() Store {
+	return mockStore{
 		addresses: map[string]net.Addr{},
 	}
 }
 
-func (addrs mockAddrs) InsertAddr(addr net.Addr) error {
-	addrs.addresses[addr.String()] = addr
+func (store mockStore) InsertAddr(addr net.Addr) error {
+	store.addresses[addr.String()] = addr
 	return nil
 }
 
-func (addrs mockAddrs) Addrs() ([]net.Addr, error) {
-	addresses := make([]net.Addr, 0, len(addrs.addresses))
-	for _, j := range addrs.addresses {
+func (store mockStore) Addrs() ([]net.Addr, error) {
+	addresses := make([]net.Addr, 0, len(store.addresses))
+	for _, j := range store.addresses {
 		addresses = append(addresses, j)
 	}
 
