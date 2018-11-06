@@ -3,12 +3,10 @@ package db
 
 import (
 	"encoding/json"
-	"math/rand"
 	"net"
-	"time"
 
+	"github.com/republicprotocol/xoxo-go/core/addr"
 	"github.com/republicprotocol/xoxo-go/core/gossip"
-	"github.com/republicprotocol/xoxo-go/foundation"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/util"
 )
@@ -36,22 +34,20 @@ func (addr Addr) String() string {
 	return addr.Value
 }
 
-// A Store uses LevelDB to store Addrs and Messages to persistent storage. It is
-// a basic implementation of the `gossip.AddrStore` and `gossip.MessageStore`
-// with no explicit in-memory cache, and no optimisations for returning random
-// information.
-type Store struct {
+// A AddrStore uses LevelDB to store Addrs to persistent storage. It is a basic
+// implementation of the `addr.Store` with no explicit in-memory cache, and no
+// optimisations for returning random information.
+type AddrStore struct {
 	db *leveldb.DB
 }
 
-// NewStore returns a new Store. A call to `Store.Close` is required to release
-// all resources.
-func NewStore(db *leveldb.DB) gossip.Store {
-	return &Store{db}, nil
+// NewAddrStore returns a new AddrStore.
+func NewAddrStore(db *leveldb.DB) addr.Store {
+	return &AddrStore{db}
 }
 
 // InsertAddr implements the `gossip.AddrStore` interface.
-func (store *Store) InsertAddr(addr net.Addr) error {
+func (store *AddrStore) InsertAddr(addr net.Addr) error {
 	data, err := json.Marshal(NewAddr(
 		addr.Network(),
 		addr.String(),
@@ -63,11 +59,11 @@ func (store *Store) InsertAddr(addr net.Addr) error {
 }
 
 // Addrs implements the `gossip.AddrStore` interface.
-func (store *Store) Addrs(α int) ([]net.Addr, error) {
+func (store *AddrStore) Addrs() ([]net.Addr, error) {
 	iter := store.db.NewIterator(&util.Range{Start: nil, Limit: nil}, nil)
 	defer iter.Release()
 
-	addrs := make([]net.Addr, 0, α)
+	addrs := make([]net.Addr, 0)
 	for iter.Next() {
 		addr := Addr{}
 		if err := json.Unmarshal(iter.Key(), &addr); err != nil {
@@ -75,16 +71,22 @@ func (store *Store) Addrs(α int) ([]net.Addr, error) {
 		}
 		addrs = append(addrs, addr)
 	}
-	shuffle(addrs)
 
-	if len(addrs) <= α {
-		return addrs, iter.Error()
-	}
-	return addrs[:α], iter.Error()
+	return addrs, iter.Error()
+}
+
+// A MessageStore uses LevelDB to store Messages to persistent storage.
+type MessageStore struct {
+	db *leveldb.DB
+}
+
+// NewMessageStore returns a new MessageStore.
+func NewMessageStore(db *leveldb.DB) gossip.Store {
+	return &AddrStore{db}
 }
 
 // InsertMessage implements the `gossip.MessageStore` interface.
-func (store *Store) InsertMessage(message foundation.Message) error {
+func (store *AddrStore) InsertMessage(message gossip.Message) error {
 	data, err := json.Marshal(message)
 	if err != nil {
 		return err
@@ -93,8 +95,8 @@ func (store *Store) InsertMessage(message foundation.Message) error {
 }
 
 // Message implements the `gossip.MessageStore` interface.
-func (store *Store) Message(key []byte) (foundation.Message, error) {
-	message := foundation.Message{}
+func (store *AddrStore) Message(key []byte) (gossip.Message, error) {
+	message := gossip.Message{}
 	data, err := store.db.Get(key, nil)
 	if err != nil {
 		if err == leveldb.ErrNotFound {
@@ -105,14 +107,4 @@ func (store *Store) Message(key []byte) (foundation.Message, error) {
 	err = json.Unmarshal(data, &message)
 
 	return message, err
-}
-
-func shuffle(values []net.Addr) {
-	r := rand.New(rand.NewSource(time.Now().Unix()))
-	for len(values) > 0 {
-		n := len(values)
-		randIndex := r.Intn(n)
-		values[n-1], values[randIndex] = values[randIndex], values[n-1]
-		values = values[:n-1]
-	}
 }

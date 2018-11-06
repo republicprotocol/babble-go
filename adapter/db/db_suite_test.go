@@ -1,4 +1,4 @@
-package leveldb_test
+package db_test
 
 import (
 	. "github.com/onsi/ginkgo"
@@ -9,5 +9,5 @@ import (
 
 func TestLeveldb(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Leveldb Suite")
+	RunSpecs(t, "db Suite")
 }

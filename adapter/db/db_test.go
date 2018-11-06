@@ -1,4 +1,4 @@
-package leveldb_test
+package db_test
 
 import (
 	"math/rand"
@@ -8,13 +8,17 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	. "github.com/republicprotocol/xoxo-go/driver/leveldb"
+	. "github.com/republicprotocol/xoxo-go/adapter/db"
 
-	"github.com/republicprotocol/xoxo-go/foundation"
+	"github.com/republicprotocol/xoxo-go/core/gossip"
+	"github.com/syndtr/goleveldb/leveldb"
 )
 
-const dbDir = "./tmp"
-const dbFile = "./tmp/db"
+const (
+	dbDir         = "./tmp"
+	addrDbFile    = "./tmp/addrs"
+	messageDbFile = "./tmp/messages"
+)
 
 var _ = Describe("LevelDB storage", func() {
 
@@ -28,38 +32,42 @@ var _ = Describe("LevelDB storage", func() {
 
 	Context("when adding new address", func() {
 		It("should store new address", func() {
-			store, err := NewStore(dbFile)
+			db, err := leveldb.OpenFile(addrDbFile, nil)
 			Expect(err).ShouldNot(HaveOccurred())
-			defer store.Close()
+			defer db.Close()
+			store := NewAddrStore(db)
 
 			addrs := testAddresses()
-			alpha := 1
-			for _, addr := range addrs {
+			lookup := map[string]bool{}
+			for i := range addrs {
+				lookup[addrs[i].Network()+addrs[i].String()] = true
+			}
+
+			for i, addr := range addrs {
 				err := store.InsertAddr(addr)
 				Expect(err).ShouldNot(HaveOccurred())
 
-				addresses, err := store.Addrs(alpha)
+				addresses, err := store.Addrs()
 				Expect(err).ShouldNot(HaveOccurred())
-				Expect(len(addresses)).Should(Equal(alpha))
+				Expect(len(addresses)).Should(Equal(i + 1))
 
-				addresses, err = store.Addrs(alpha + 1)
-				Expect(err).ShouldNot(HaveOccurred())
-				Expect(len(addresses)).Should(Equal(alpha))
+				duplicates := make(map[string]struct{})
+				for _, address := range addresses {
+					Expect(lookup[address.Network()+address.String()]).Should(BeTrue())
+					duplicates[address.Network()+address.String()] = struct{}{}
+				}
 
-				addresses, err = store.Addrs(alpha - 1)
-				Expect(err).ShouldNot(HaveOccurred())
-				Expect(len(addresses)).Should(Equal(alpha - 1))
-
-				alpha++
+				Expect(len(duplicates)).Should(Equal(i + 1))
 			}
 		})
 	})
 
 	Context("when storing new messages ", func() {
 		It("should store new message ", func() {
-			store, err := NewStore(dbFile)
+			db, err := leveldb.OpenFile(messageDbFile, nil)
 			Expect(err).ShouldNot(HaveOccurred())
-			defer store.Close()
+			defer db.Close()
+			store := NewMessageStore(db)
 
 			messages := testMessages()
 			for _, message := range messages {
@@ -76,9 +84,10 @@ var _ = Describe("LevelDB storage", func() {
 
 	Context("when reading messages ", func() {
 		It("should return empty message and nil error when reading something not in the store  ", func() {
-			store, err := NewStore(dbFile)
+			db, err := leveldb.OpenFile(messageDbFile, nil)
 			Expect(err).ShouldNot(HaveOccurred())
-			defer store.Close()
+			defer db.Close()
+			store := NewMessageStore(db)
 
 			messages := testMessages()
 			for _, message := range messages {
@@ -106,18 +115,18 @@ func testAddresses() []Addr {
 	return addrs
 }
 
-func testMessages() []foundation.Message {
+func testMessages() []gossip.Message {
 	nonces := []uint64{0, 1, 5, 100, uint64(time.Now().Unix())}
 	keys := [][]byte{{}, randomBytes(), randomBytes()}
 	values := [][]byte{{}, randomBytes(), randomBytes()}
 	signatures := [][]byte{{}, randomBytes(), randomBytes()}
 
-	messages := make([]foundation.Message, 0)
+	messages := make([]gossip.Message, 0)
 	for _, nonce := range nonces {
 		for _, key := range keys {
 			for _, value := range values {
 				for _, signature := range signatures {
-					messages = append(messages, foundation.Message{
+					messages = append(messages, gossip.Message{
 						Nonce:     nonce,
 						Key:       key,
 						Value:     value,
