@@ -2,6 +2,7 @@ package gossip
 
 import (
 	"context"
+	"github.com/republicprotocol/xoxo-go/core/addr"
 	"log"
 	"net"
 
@@ -26,14 +27,14 @@ type Observer interface {
 	Notify(message Message)
 }
 
-// A Client is used to send MessagesStore to a remote Server.
+// A Client is used to send Store to a remote Server.
 type Client interface {
 
 	// Send a Message to the a remote `net.Addr`.
 	Send(ctx context.Context, to net.Addr, message Message) error
 }
 
-// A Server receives MessagesStore.
+// A Server receives Store.
 type Server interface {
 
 	// Receive is called to notify the Server that a Message has been received
@@ -54,17 +55,19 @@ type gossiper struct {
 	verifier Verifier
 	observer Observer
 	client   Client
+	book     addr.Book
 	store    Store
 }
 
 // NewGossiper returns a new gosspier.
-func NewGossiper(α int, signer Signer, verifier Verifier, observer Observer, client Client, store Store) Gossiper {
+func NewGossiper(α int, signer Signer, verifier Verifier, observer Observer, client Client, book addr.Book, store Store) Gossiper {
 	return &gossiper{
 		α:        α,
 		signer:   signer,
 		verifier: verifier,
 		observer: observer,
 		client:   client,
+		book:     book,
 		store:    store,
 	}
 }
@@ -81,7 +84,7 @@ func (gossiper *gossiper) Receive(ctx context.Context, message Message) error {
 	}
 
 	previousMessage, err := gossiper.store.Message(message.Key)
-	if err != nil  {
+	if err != nil {
 		return err
 	}
 	if previousMessage.Nonce >= message.Nonce {
@@ -107,7 +110,7 @@ func (gossiper *gossiper) broadcast(ctx context.Context, message Message, sign b
 		message.Signature = signature
 	}
 
-	addrs, err := gossiper.store.Addrs(gossiper.α)
+	addrs, err := gossiper.book.Addrs(gossiper.α)
 	if err != nil {
 		return err
 	}
