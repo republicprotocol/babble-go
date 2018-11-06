@@ -9,7 +9,11 @@ import (
 // Addrs is used to store and lookup all known `net.Addrs`. It is not assumed
 // that this interface is safe for concurrent use.
 type Addrs interface {
+
+	// Insert a new Addr to the store.
 	InsertAddr(net.Addr) error
+
+	// Addrs returns all the stored Addrs.
 	Addrs() ([]net.Addr, error)
 }
 
@@ -31,12 +35,17 @@ type book struct {
 	addrs      Addrs
 }
 
-func NewBook(addrs Addrs) Book {
+func NewBook(addrs Addrs) (Book, error) {
+	addresses, err := addrs.Addrs()
+	if err != nil {
+		return nil, err
+	}
+
 	return &book{
 		addrsMu:    new(sync.RWMutex),
-		addrsCache: make([]net.Addr, 0),
+		addrsCache: addresses,
 		addrs:      addrs,
-	}
+	}, nil
 }
 
 func (book *book) InsertAddr(addr net.Addr) error {
@@ -52,6 +61,9 @@ func (book *book) Addrs(α int) ([]net.Addr, error) {
 	defer book.addrsMu.RUnlock()
 
 	addrs := make([]net.Addr, 0, α)
+	if α > len(book.addrsCache) {
+		α = len(book.addrsCache)
+	}
 	for i := range rand.Perm(len(book.addrsCache))[:α] {
 		addrs = append(addrs, book.addrsCache[i])
 	}
