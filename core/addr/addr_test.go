@@ -2,7 +2,6 @@ package addr_test
 
 import (
 	"fmt"
-	"github.com/republicprotocol/co-go"
 	"log"
 	"math/rand"
 	"net"
@@ -11,6 +10,8 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	. "github.com/republicprotocol/xoxo-go/core/addr"
+
+	"github.com/republicprotocol/co-go"
 )
 
 func init() {
