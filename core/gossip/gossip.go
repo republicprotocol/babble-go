@@ -2,6 +2,7 @@ package gossip
 
 import (
 	"context"
+	"log"
 	"net"
 
 	"github.com/republicprotocol/co-go"
@@ -25,14 +26,14 @@ type Observer interface {
 	Notify(message Message)
 }
 
-// A Client is used to send Messages to a remote Server.
+// A Client is used to send MessagesStore to a remote Server.
 type Client interface {
 
 	// Send a Message to the a remote `net.Addr`.
 	Send(ctx context.Context, to net.Addr, message Message) error
 }
 
-// A Server receives Messages.
+// A Server receives MessagesStore.
 type Server interface {
 
 	// Receive is called to notify the Server that a Message has been received
@@ -40,12 +41,15 @@ type Server interface {
 	Receive(ctx context.Context, message Message) error
 }
 
+// Gossiper is a participant in the gossip network. It can receive message and
+// broadcast new message to the network.
 type Gossiper interface {
 	Server
 	Broadcast(ctx context.Context, message Message) error
 }
 
 type gossiper struct {
+	α        int
 	signer   Signer
 	verifier Verifier
 	observer Observer
@@ -53,8 +57,10 @@ type gossiper struct {
 	store    Store
 }
 
-func NewGossiper(signer Signer, verifier Verifier, observer Observer, client Client, store Store) Gossiper {
+// NewGossiper returns a new gosspier.
+func NewGossiper(α int, signer Signer, verifier Verifier, observer Observer, client Client, store Store) Gossiper {
 	return &gossiper{
+		α:        α,
 		signer:   signer,
 		verifier: verifier,
 		observer: observer,
@@ -63,20 +69,22 @@ func NewGossiper(signer Signer, verifier Verifier, observer Observer, client Cli
 	}
 }
 
+// Broadcast implements the Gossiper interface.
 func (gossiper *gossiper) Broadcast(ctx context.Context, message Message) error {
 	return gossiper.broadcast(ctx, message, true)
 }
 
+// Receive implements the Gossiper interface.
 func (gossiper *gossiper) Receive(ctx context.Context, message Message) error {
 	if err := gossiper.verifier.Verify(message.Value, message.Signature); err != nil {
 		return err
 	}
 
 	previousMessage, err := gossiper.store.Message(message.Key)
-	if err != nil && err != ErrMessageNotFound {
+	if err != nil  {
 		return err
 	}
-	if err == nil && previousMessage.Nonce >= message.Nonce {
+	if previousMessage.Nonce >= message.Nonce {
 		return nil
 	}
 	if err := gossiper.store.InsertMessage(message); err != nil {
@@ -99,20 +107,17 @@ func (gossiper *gossiper) broadcast(ctx context.Context, message Message, sign b
 		message.Signature = signature
 	}
 
-	addrs, err := gossiper.store.Addrs()
+	addrs, err := gossiper.store.Addrs(gossiper.α)
 	if err != nil {
 		return err
 	}
 
-	errs := make([]error, len(addrs))
 	co.ForAll(addrs, func(i int) {
-		errs[i] = gossiper.client.Send(ctx, addrs[i], message)
+		err := gossiper.client.Send(ctx, addrs[i], message)
+		if err != nil {
+			log.Printf("[error] cannot send messge to %v", addrs[i].String())
+		}
 	})
 
-	for i := range errs {
-		if errs[i] != nil {
-			return errs[i]
-		}
-	}
 	return nil
 }

@@ -12,6 +12,7 @@ type Message struct {
 	Signature []byte `json:"signature"`
 }
 
+// NewMessage returns a new Message with given nonce, key, value and signature.
 func NewMessage(nonce uint64, key, value, signature []byte) Message {
 	return Message{nonce, key, value, signature}
 }
