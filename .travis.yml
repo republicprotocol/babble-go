@@ -3,17 +3,19 @@
 # This is helpful because Travis CI often finds issues that our own local tests
 # do not.
 
-go vet                  `go list ./... | grep -Ev "(vendor)"` && \
-golint -set_exit_status `go list ./... | grep -Ev "(vendor)"` && \
+# go vet                  `go list ./... | grep -Ev "(vendor)"` && \
+# golint -set_exit_status `go list ./... | grep -Ev "(vendor)"` && \
 
 # Test and generate cover profiles
-ginkgo --cover driver/grpc        \
-driver/leveldb                  &&\
+ginkgo --cover core/addr            \
+               adapter/rpc          \
+               adapter/db         &&\
 
 # Merge cover profiles into one root cover profile
-covermerge driver/grpc/grpc.coverprofile                   \
-driver/leveldb/leveldb.coverprofile                      \
-> xoxo.coverprofile
+covermerge core/addr/addr.coverprofile         \
+           adapter/rpc/rpc.coverprofile        \
+           adapter/db/db.coverprofile          \
+           > xoxo.coverprofile
 
 # Remove auto-generated protobuf files
 sed -i.bak '/.pb.go/d' xoxo.coverprofile
