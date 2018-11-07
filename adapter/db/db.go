@@ -1,4 +1,3 @@
-// TODO: Rename package to db.
 package db
 
 import (
