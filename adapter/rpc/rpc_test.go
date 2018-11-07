@@ -84,7 +84,7 @@ var _ = Describe("grpc", func() {
 					faultyNodes[index] = true
 				}
 
-				clients, stores, servers, listens := initService(6, numberOfTestNodes)
+				clients, stores, servers, listens := initService(7, numberOfTestNodes)
 				defer stopService(servers, listens)
 
 				for i := range servers {
