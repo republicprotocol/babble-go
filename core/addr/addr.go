@@ -67,7 +67,6 @@ func (book *book) Addrs(α int) ([]net.Addr, error) {
 		α = len(book.addrsCache)
 	}
 	addrs := make([]net.Addr, 0, α)
-
 	for _, index := range rand.Perm(len(book.addrsCache))[:α] {
 		addrs = append(addrs, book.addrsCache[index])
 	}
