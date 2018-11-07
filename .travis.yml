@@ -18,9 +18,7 @@ covermerge core/addr/addr.coverprofile         \
            > xoxo.coverprofile
 
 # Remove auto-generated protobuf files
-sed -i.bak '/.pb.go/d' xoxo.coverprofile
+sed -i '/.pb.go/d' xoxo.coverprofile
 
 # Remove marshaling files
-sed -i.bak '/marshal.go/d' xoxo.coverprofile
-
-rm *.bak
+sed -i '/marshal.go/d' xoxo.coverprofile
