@@ -118,7 +118,7 @@ func (gossiper *gossiper) broadcast(ctx context.Context, message Message, sign b
 	}
 
 	go co.ForAll(addrs, func(i int) {
-		ctx , cancel := context.WithTimeout(context.Background(), time.Minute)
+		ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 		defer cancel()
 
 		err := gossiper.client.Send(ctx, addrs[i], message)

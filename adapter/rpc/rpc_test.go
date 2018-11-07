@@ -70,7 +70,7 @@ var _ = Describe("grpc", func() {
 		rand.Seed(time.Now().UnixNano())
 	})
 
-	for _, failureRate := range []int{0,10,20} { // percentage
+	for _, failureRate := range []int{0, 10, 20} { // percentage
 		failureRate := failureRate
 		Context("when sending message via grpc", func() {
 			It("should receive the message and broadcast the message if it's new", func() {
@@ -118,12 +118,12 @@ var _ = Describe("grpc", func() {
 					}
 					to, err := net.ResolveTCPAddr("tcp", fmt.Sprintf("0.0.0.0:%v", 8000+receiver))
 					Expect(err).ShouldNot(HaveOccurred())
-					ctx, cancel := context.WithTimeout(context.Background(), 3 *time.Second)
+					ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 					defer cancel()
 
 					Expect(clients[sender].Send(ctx, to, message)).ShouldNot(HaveOccurred())
 				}
-				time.Sleep(3* time.Second)
+				time.Sleep(3 * time.Second)
 
 				// Check how many nodes have got the message
 				for _, message := range messages {
