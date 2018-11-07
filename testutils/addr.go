@@ -64,7 +64,7 @@ func (store mockStore) Message(key []byte) (gossip.Message, error) {
 }
 
 func RandomAddr() net.Addr {
-	addr, err := net.ResolveTCPAddr("", fmt.Sprintf("%v.%v.%v.%v: %v", rand.Intn(256), rand.Intn(256), rand.Intn(256), rand.Intn(256), rand.Intn(65535)))
+	addr, err := net.ResolveTCPAddr("tcp", fmt.Sprintf("%v.%v.%v.%v:%v", rand.Intn(256), rand.Intn(256), rand.Intn(256), rand.Intn(256), rand.Intn(8000)))
 	if err != nil {
 		log.Fatal(err)
 	}
