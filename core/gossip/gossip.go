@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"net"
+	"time"
 
 	"github.com/republicprotocol/co-go"
 	"github.com/republicprotocol/xoxo-go/core/addr"
@@ -99,6 +100,7 @@ func (gossiper *gossiper) Receive(ctx context.Context, message Message) error {
 			return err
 		}
 	}
+
 	return gossiper.broadcast(ctx, message, false)
 }
 
@@ -115,10 +117,14 @@ func (gossiper *gossiper) broadcast(ctx context.Context, message Message, sign b
 	if err != nil {
 		return err
 	}
-	co.ForAll(addrs, func(i int) {
+
+	go co.ForAll(addrs, func(i int) {
+		ctx , cancel := context.WithTimeout(context.Background(), time.Minute)
+		defer cancel()
+
 		err := gossiper.client.Send(ctx, addrs[i], message)
 		if err != nil {
-			log.Printf("[error] cannot send messge to %v", addrs[i].String())
+			log.Printf("[error] cannot send messge to %v, %v", addrs[i].String(), err )
 		}
 	})
 

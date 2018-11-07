@@ -3,7 +3,6 @@ package rpc
 import (
 	"context"
 	"net"
-	"time"
 
 	"github.com/republicprotocol/xoxo-go/core/gossip"
 	"google.golang.org/grpc"
@@ -86,9 +85,6 @@ func (service *Service) Send(ctx context.Context, request *SendRequest) (*SendRe
 		Value:     request.Value,
 		Signature: request.Signature,
 	}
-
-	ctx, cancel := context.WithTimeout(ctx, time.Minute)
-	defer cancel()
 
 	return &SendResponse{}, service.server.Receive(ctx, message)
 }
