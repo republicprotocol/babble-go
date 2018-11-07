@@ -36,15 +36,6 @@ func (store MockStore) Addrs() ([]net.Addr, error) {
 	return addresses, nil
 }
 
-func RandomAddr() net.Addr {
-	addr, err := net.ResolveTCPAddr("", fmt.Sprintf("%v.%v.%v.%v: %v", rand.Intn(256), rand.Intn(256), rand.Intn(256), rand.Intn(256), rand.Intn(10000)))
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return addr
-}
-
 type mockStore struct {
 	messageMu *sync.Mutex
 	messages  map[string]gossip.Message
@@ -70,4 +61,13 @@ func (store mockStore) Message(key []byte) (gossip.Message, error) {
 	defer store.messageMu.Unlock()
 
 	return store.messages[string(key)], nil
+}
+
+func RandomAddr() net.Addr {
+	addr, err := net.ResolveTCPAddr("", fmt.Sprintf("%v.%v.%v.%v: %v", rand.Intn(256), rand.Intn(256), rand.Intn(256), rand.Intn(256), rand.Intn(65535)))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return addr
 }

@@ -3,11 +3,9 @@ package rpc_test
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"math/rand"
 	"net"
-	"os"
 	"time"
 
 	. "github.com/onsi/ginkgo"
@@ -101,7 +99,6 @@ var _ = Describe("grpc", func() {
 				time.Sleep(1 * time.Second)
 
 				// Send message
-				log.SetOutput(ioutil.Discard)
 				messages := make([]gossip.Message, 0, numberOfMessages)
 				for i := 0; i < numberOfMessages; i++ {
 					message := randomMessage()
@@ -127,7 +124,6 @@ var _ = Describe("grpc", func() {
 					Expect(clients[sender].Send(ctx, to, message)).ShouldNot(HaveOccurred())
 				}
 				time.Sleep(3* time.Second)
-				log.SetOutput(os.Stdout)
 
 				// Check how many nodes have got the message
 				for _, message := range messages {
