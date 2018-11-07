@@ -1,10 +1,7 @@
 package addr_test
 
 import (
-	"fmt"
-	"log"
 	"math/rand"
-	"net"
 	"time"
 
 	. "github.com/onsi/ginkgo"
@@ -12,6 +9,7 @@ import (
 	. "github.com/republicprotocol/xoxo-go/core/addr"
 
 	"github.com/republicprotocol/co-go"
+	"github.com/republicprotocol/xoxo-go/testutils"
 )
 
 func init() {
@@ -21,7 +19,7 @@ func init() {
 var _ = Describe("Store", func() {
 
 	newEmptyBook := func() Book {
-		addrs := newMockAddrs()
+		addrs := testutils.NewMockAddrs()
 		book, err := NewBook(addrs)
 		Expect(err).ShouldNot(HaveOccurred())
 
@@ -63,7 +61,7 @@ var _ = Describe("Store", func() {
 			lookupMap := map[string]int{}
 			numberOfTestAddrs := 100
 			for i := 0; i < numberOfTestAddrs; i++ {
-				addr := randomAddr()
+				addr := testutils.RandomAddr()
 				lookupMap[addr.String()] = 1
 				Expect(book.InsertAddr(addr)).ShouldNot(HaveOccurred())
 			}
@@ -72,11 +70,11 @@ var _ = Describe("Store", func() {
 		})
 
 		It("should be able to return α random addresses when initialized with an non-empty Store", func() {
-			addrs := newMockAddrs()
+			addrs := testutils.NewMockAddrs()
 			lookupMap := map[string]int{}
 			numberOfTestAddrs := 100
 			for i := 0; i < numberOfTestAddrs; i++ {
-				addr := randomAddr()
+				addr := testutils.RandomAddr()
 				lookupMap[addr.String()] = 1
 				Expect(addrs.InsertAddr(addr)).ShouldNot(HaveOccurred())
 			}
@@ -99,7 +97,7 @@ var _ = Describe("Store", func() {
 			lookupMap := map[string]int{}
 			numberOfTestAddrs := 100
 			for i := 0; i < numberOfTestAddrs; i++ {
-				addr := randomAddr()
+				addr := testutils.RandomAddr()
 				lookupMap[addr.String()] = 1
 				Expect(book.InsertAddr(addr)).ShouldNot(HaveOccurred())
 			}
@@ -125,7 +123,7 @@ var _ = Describe("Store", func() {
 				co.ParForAll(numberOfTestAddrs, func(i int) {
 					defer GinkgoRecover()
 
-					addr := randomAddr()
+					addr := testutils.RandomAddr()
 					Expect(book.InsertAddr(addr)).ShouldNot(HaveOccurred())
 				})
 
@@ -142,37 +140,3 @@ var _ = Describe("Store", func() {
 	})
 
 })
-
-// mockStore is a mock implementation of the `addr.Store`
-type mockStore struct {
-	addresses map[string]net.Addr
-}
-
-func newMockAddrs() Store {
-	return mockStore{
-		addresses: map[string]net.Addr{},
-	}
-}
-
-func (store mockStore) InsertAddr(addr net.Addr) error {
-	store.addresses[addr.String()] = addr
-	return nil
-}
-
-func (store mockStore) Addrs() ([]net.Addr, error) {
-	addresses := make([]net.Addr, 0, len(store.addresses))
-	for _, j := range store.addresses {
-		addresses = append(addresses, j)
-	}
-
-	return addresses, nil
-}
-
-func randomAddr() net.Addr {
-	addr, err := net.ResolveTCPAddr("", fmt.Sprintf("%v.%v.%v.%v: %v", rand.Intn(256), rand.Intn(256), rand.Intn(256), rand.Intn(256), rand.Intn(10000)))
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return addr
-}

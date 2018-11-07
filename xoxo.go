@@ -1,20 +1,22 @@
 package xoxo
 
 import (
+	"github.com/republicprotocol/xoxo-go/adapter/db"
+	"github.com/republicprotocol/xoxo-go/adapter/rpc"
+	"github.com/republicprotocol/xoxo-go/core/addr"
 	"github.com/republicprotocol/xoxo-go/core/gossip"
-	"github.com/republicprotocol/xoxo-go/driver/grpc"
-	"github.com/republicprotocol/xoxo-go/driver/leveldb"
-	"github.com/republicprotocol/xoxo-go/foundation"
 )
 
 type (
 	Gossiper = gossip.Gossiper
-	Message  = foundation.Message
+	Message  = gossip.Message
 )
 
 var (
-	NewGossiper   = gossip.NewGossiper
-	NewRPCClient  = grpc.NewClient
-	NewRPCService = grpc.NewService
-	NewStore      = leveldb.NewStore
+	NewGossiper     = gossip.NewGossiper
+	NewRPCClient    = rpc.NewClient
+	NewRPCService   = rpc.NewService
+	NewBook         = addr.NewBook
+	NewMessageStore = db.NewMessageStore
+	NewAddrs        = db.NewAddrStore
 )

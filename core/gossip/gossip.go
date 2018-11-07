@@ -2,11 +2,11 @@ package gossip
 
 import (
 	"context"
-	"github.com/republicprotocol/xoxo-go/core/addr"
 	"log"
 	"net"
 
 	"github.com/republicprotocol/co-go"
+	"github.com/republicprotocol/xoxo-go/core/addr"
 )
 
 // A Signer can consume bytes and produce a signature for those bytes. This
@@ -19,12 +19,6 @@ type Signer interface {
 // the signatory.
 type Verifier interface {
 	Verify(data []byte, signature []byte) error
-}
-
-// An Observer is notified whenever a new Message, or an update to an existing
-// Message, is received.
-type Observer interface {
-	Notify(message Message)
 }
 
 // A Client is used to send Store to a remote Server.
@@ -40,6 +34,12 @@ type Server interface {
 	// Receive is called to notify the Server that a Message has been received
 	// from a remote Client.
 	Receive(ctx context.Context, message Message) error
+}
+
+// An Observer is notified whenever a new Message, or an update to an existing
+// Message, is received.
+type Observer interface {
+	Notify(ctx context.Context, message Message) error
 }
 
 // Gossiper is a participant in the gossip network. It can receive message and
@@ -95,9 +95,10 @@ func (gossiper *gossiper) Receive(ctx context.Context, message Message) error {
 	}
 
 	if gossiper.observer != nil {
-		gossiper.observer.Notify(message)
+		if err := gossiper.observer.Notify(ctx, message); err != nil {
+			return err
+		}
 	}
-
 	return gossiper.broadcast(ctx, message, false)
 }
 
@@ -114,7 +115,6 @@ func (gossiper *gossiper) broadcast(ctx context.Context, message Message, sign b
 	if err != nil {
 		return err
 	}
-
 	co.ForAll(addrs, func(i int) {
 		err := gossiper.client.Send(ctx, addrs[i], message)
 		if err != nil {

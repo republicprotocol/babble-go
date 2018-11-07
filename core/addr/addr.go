@@ -63,12 +63,13 @@ func (book *book) Addrs(α int) ([]net.Addr, error) {
 	book.addrsMu.RLock()
 	defer book.addrsMu.RUnlock()
 
-	addrs := make([]net.Addr, 0, α)
 	if α > len(book.addrsCache) {
 		α = len(book.addrsCache)
 	}
-	for i := range rand.Perm(len(book.addrsCache))[:α] {
-		addrs = append(addrs, book.addrsCache[i])
+	addrs := make([]net.Addr, 0, α)
+
+	for _, index := range rand.Perm(len(book.addrsCache))[:α] {
+		addrs = append(addrs, book.addrsCache[index])
 	}
 
 	return addrs, nil

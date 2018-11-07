@@ -1,4 +1,4 @@
-package grpc
+package rpc
 
 import (
 	"context"
@@ -6,16 +6,23 @@ import (
 	"time"
 
 	"github.com/republicprotocol/xoxo-go/core/gossip"
-	"github.com/republicprotocol/xoxo-go/foundation"
 	"google.golang.org/grpc"
 )
 
+// Dialer is used to open a connection to a gRPC server.
 type Dialer interface {
-	Dial(ctx context.Context, to net.Addr) (grpc.ClientConn, error)
+
+	// Dial a connection to a remote gRPC server. When dialing fails, it's up
+	// to the implementation to backoff and retry or retrun error directly.
+	Dial(ctx context.Context, to net.Addr) (*grpc.ClientConn, error)
 }
 
+// Caller is used to call gRPC procedures from a client.
 type Caller interface {
-	// TODO: Define and use.
+
+	// Call the gRPC procedure defined by `f`. When the call fails, it's up to
+	// the implementation to backoff and retry or return the error directly.
+	Call(ctx context.Context, f func() error) error
 }
 
 type client struct {
@@ -32,7 +39,7 @@ func NewClient(dialer Dialer, caller Caller) gossip.Client {
 // Send a `message` to the `to` address. A `context.Context` can be used to
 // cancel or expire the request. The client will backoff the request with a
 // maximum delay of one minute.
-func (client *client) Send(ctx context.Context, to net.Addr, message foundation.Message) error {
+func (client *client) Send(ctx context.Context, to net.Addr, message gossip.Message) error {
 	conn, err := client.Dial(ctx, to)
 	if err != nil {
 		return err
@@ -46,12 +53,10 @@ func (client *client) Send(ctx context.Context, to net.Addr, message foundation.
 		Signature: message.Signature,
 	}
 
-	// TODO: Backoff should be part of the GRPC driver and is used by Dialer
-	// and Caller.
-	return Backoff(ctx, func() (err error) {
+	return client.Call(ctx, func() error {
 		_, err = NewXoxoClient(conn).Send(ctx, request)
-		return
-	}, time.Minute)
+		return err
+	})
 }
 
 // Service implements a gRPC Service that accepts RPCs from clients. It
@@ -75,7 +80,7 @@ func (service *Service) Register(server *grpc.Server) {
 
 // Send implements the respective gRPC call.
 func (service *Service) Send(ctx context.Context, request *SendRequest) (*SendResponse, error) {
-	message := foundation.Message{
+	message := gossip.Message{
 		Nonce:     request.Nonce,
 		Key:       request.Key,
 		Value:     request.Value,
