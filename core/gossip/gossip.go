@@ -2,7 +2,6 @@ package gossip
 
 import (
 	"context"
-	"log"
 	"net"
 	"time"
 
@@ -124,7 +123,8 @@ func (gossiper *gossiper) broadcast(ctx context.Context, message Message, sign b
 
 		err := gossiper.client.Send(ctx, addrs[i], message)
 		if err != nil {
-			log.Printf("[error] cannot send messge to %v, %v", addrs[i].String(), err )
+			// TODO : config the logger
+			// log.Printf("[error] cannot send messge to %v, %v", addrs[i].String(), err )
 		}
 	})
 
