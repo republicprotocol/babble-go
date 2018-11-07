@@ -75,8 +75,8 @@ var _ = Describe("grpc", func() {
 		failureRate := failureRate
 		Context("when sending message via grpc", func() {
 			It("should receive the message and broadcast the message if it's new", func() {
-				numberOfTestNodes := 36
-				numberOfMessages := 8
+				numberOfTestNodes := 48
+				numberOfMessages := 12
 				numberOfFaultyNodes := numberOfTestNodes * failureRate / 100
 				shuffle := rand.Perm(numberOfTestNodes)[:numberOfFaultyNodes]
 				faultyNodes := map[int]bool{}
