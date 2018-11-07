@@ -3,6 +3,7 @@ package rpc_test
 import (
 	"context"
 	"fmt"
+	"github.com/republicprotocol/republicprotocol-go/.vendor-new/github.com/republicprotocol/co-go"
 	"io/ioutil"
 	"log"
 	"math/rand"
@@ -87,18 +88,17 @@ var _ = Describe("grpc", func() {
 				clients, stores, servers, listens := initService(7, numberOfTestNodes)
 				defer stopService(servers, listens)
 
-				for i := range servers {
-					go func(i int) {
-						defer GinkgoRecover()
+				go co.ParForAll(servers, func(i int){
+					defer GinkgoRecover()
 
-						if faultyNodes[i] {
-							return
-						}
+					if faultyNodes[i] {
+						return
+					}
 
-						err := servers[i].Serve(listens[i])
-						Expect(err).ShouldNot(HaveOccurred())
-					}(i)
-				}
+					err := servers[i].Serve(listens[i])
+					Expect(err).ShouldNot(HaveOccurred())
+				})
+				time.Sleep(1* time.Second)
 
 				// Send message
 				log.SetOutput(ioutil.Discard)
@@ -123,7 +123,9 @@ var _ = Describe("grpc", func() {
 					Expect(err).ShouldNot(HaveOccurred())
 					ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 					defer cancel()
-					clients[sender].Send(ctx, to, message)
+
+					err = clients[sender].Send(ctx, to, message)
+					Expect(err).ShouldNot(HaveOccurred())
 				}
 				time.Sleep(100 * time.Millisecond)
 				log.SetOutput(os.Stdout)
