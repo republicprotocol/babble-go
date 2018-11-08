@@ -2,11 +2,12 @@ package gossip
 
 import (
 	"context"
+	"log"
 	"net"
 	"time"
 
-	"github.com/republicprotocol/co-go"
 	"github.com/republicprotocol/babble-go/core/addr"
+	"github.com/republicprotocol/co-go"
 )
 
 // A Signer can consume bytes and produce a signature for those bytes. This
@@ -124,7 +125,7 @@ func (gossiper *gossiper) broadcast(ctx context.Context, message Message, sign b
 		err := gossiper.client.Send(ctx, addrs[i], message)
 		if err != nil {
 			// TODO : config the logger
-			// log.Printf("[error] cannot send messge to %v, %v", addrs[i].String(), err )
+			log.Printf("[error] cannot send messge to %v = %v", addrs[i].String(), err)
 		}
 	})
 
