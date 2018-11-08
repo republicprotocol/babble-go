@@ -33,7 +33,7 @@ func (addr Addr) String() string {
 	return addr.Value
 }
 
-// A AddrStore uses LevelDB to store Addrs to persistent storage. It is a basic
+// An AddrStore uses LevelDB to store Addrs to persistent storage. It is a basic
 // implementation of the `addr.Store` with no explicit in-memory cache, and no
 // optimisations for returning random information.
 type AddrStore struct {
