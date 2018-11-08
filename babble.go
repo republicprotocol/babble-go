@@ -11,7 +11,7 @@ type (
 	Gossiper  = gossip.Gossiper
 	Message   = gossip.Message
 	Client    = gossip.Client
-	Singer    = gossip.Signer
+	Signer    = gossip.Signer
 	Observer  = gossip.Observer
 	Verifier  = gossip.Verifier
 	Store     = gossip.Store
