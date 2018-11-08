@@ -1,7 +1,6 @@
 package addr
 
 import (
-	"math/rand"
 	"net"
 	"sync"
 )
@@ -31,21 +30,26 @@ type Book interface {
 
 type book struct {
 	addrsMu    *sync.RWMutex
-	addrsCache []net.Addr
-	addrs      Store
+	addrsStore Store
+	addrsCache map[string]net.Addr
 }
 
 // NewBook returns a new Book with given addr Store.
 func NewBook(store Store) (Book, error) {
-	addresses, err := store.Addrs()
+	addrs, err := store.Addrs()
 	if err != nil {
 		return nil, err
 	}
 
+	addrsCache := make(map[string]net.Addr, len(addrs))
+	for _, addr := range addrs {
+		addrsCache[addr.String()] = addr
+	}
+
 	return &book{
 		addrsMu:    new(sync.RWMutex),
-		addrsCache: addresses,
-		addrs:      store,
+		addrsStore: store,
+		addrsCache: addrsCache,
 	}, nil
 }
 
@@ -54,8 +58,8 @@ func (book *book) InsertAddr(addr net.Addr) error {
 	book.addrsMu.Lock()
 	defer book.addrsMu.Unlock()
 
-	book.addrsCache = append(book.addrsCache, addr)
-	return book.addrs.InsertAddr(addr)
+	book.addrsCache[addr.String()] = addr
+	return book.addrsStore.InsertAddr(addr)
 }
 
 // Addrs implements Store interface.
@@ -66,9 +70,14 @@ func (book *book) Addrs(α int) ([]net.Addr, error) {
 	if α > len(book.addrsCache) {
 		α = len(book.addrsCache)
 	}
+
+	numAddrs := 0
 	addrs := make([]net.Addr, 0, α)
-	for _, index := range rand.Perm(len(book.addrsCache))[:α] {
-		addrs = append(addrs, book.addrsCache[index])
+	for _, addr := range book.addrsCache {
+		addrs = append(addrs, addr)
+		if numAddrs++; numAddrs >= α {
+			return addrs, nil
+		}
 	}
 
 	return addrs, nil
