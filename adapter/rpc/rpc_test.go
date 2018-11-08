@@ -3,7 +3,6 @@ package rpc_test
 import (
 	"context"
 	"fmt"
-	"log"
 	"math/rand"
 	"net"
 	"time"
@@ -12,16 +11,16 @@ import (
 	. "github.com/onsi/gomega"
 	. "github.com/republicprotocol/babble-go/adapter/rpc"
 
-	"github.com/republicprotocol/co-go"
 	"github.com/republicprotocol/babble-go/core/addr"
 	"github.com/republicprotocol/babble-go/core/gossip"
 	"github.com/republicprotocol/babble-go/testutils"
+	"github.com/republicprotocol/co-go"
 	"google.golang.org/grpc"
 )
 
 var _ = Describe("gRPC", func() {
 
-	initService := func(α, n int) ([]gossip.Client, []gossip.Store, []*grpc.Server, []net.Listener) {
+	init := func(α, n int) ([]gossip.Client, []gossip.Store, []*grpc.Server, []net.Listener) {
 		clients := make([]gossip.Client, n)
 		stores := make([]gossip.Store, n)
 		servers := make([]*grpc.Server, n)
@@ -74,8 +73,9 @@ var _ = Describe("gRPC", func() {
 		failureRate := failureRate
 		Context("when sending message", func() {
 			It("should receive and broadcast the message", func() {
-				numberOfTestNodes := 48
-				numberOfMessages := 12
+				alpha := 5
+				numberOfTestNodes := 24
+				numberOfMessages := 10
 				numberOfFaultyNodes := numberOfTestNodes * failureRate / 100
 
 				shuffle := rand.Perm(numberOfTestNodes)[:numberOfFaultyNodes]
@@ -84,7 +84,7 @@ var _ = Describe("gRPC", func() {
 					faultyNodes[index] = true
 				}
 
-				clients, stores, servers, listens := initService(7, numberOfTestNodes)
+				clients, stores, servers, listens := init(alpha, numberOfTestNodes)
 				defer stopService(servers, listens)
 
 				go co.ParForAll(servers, func(i int) {
@@ -96,7 +96,7 @@ var _ = Describe("gRPC", func() {
 					err := servers[i].Serve(listens[i])
 					Expect(err).ShouldNot(HaveOccurred())
 				})
-				time.Sleep(1 * time.Second)
+				time.Sleep(time.Second)
 
 				// Send message
 				messages := make([]gossip.Message, 0, numberOfMessages)
@@ -135,9 +135,7 @@ var _ = Describe("gRPC", func() {
 							received++
 						}
 					}
-
 					Expect(received).Should(BeNumerically(">=", (numberOfTestNodes-numberOfFaultyNodes)*9/10))
-					log.Printf("Total: %v ,received : %v", numberOfTestNodes-numberOfFaultyNodes, received)
 				}
 			})
 		})
