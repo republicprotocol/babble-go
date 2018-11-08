@@ -1,4 +1,4 @@
-package foundation
+package gossip
 
 // A Message is a unit of data that can be disseminated throughout the network.
 // An outdated Message can be overwritten by disseminating a newer Message with
@@ -10,4 +10,9 @@ type Message struct {
 	Key       []byte `json:"key"`
 	Value     []byte `json:"value"`
 	Signature []byte `json:"signature"`
+}
+
+// NewMessage returns a new Message with given nonce, key, value and signature.
+func NewMessage(nonce uint64, key, value, signature []byte) Message {
+	return Message{nonce, key, value, signature}
 }
