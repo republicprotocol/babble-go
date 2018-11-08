@@ -1,3 +1,3 @@
-# XOXO Gossip Protocol
+# Babble Gossip Protocol
 
 A simple gossip protocol.
