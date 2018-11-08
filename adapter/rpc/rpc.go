@@ -4,7 +4,7 @@ import (
 	"context"
 	"net"
 
-	"github.com/republicprotocol/xoxo-go/core/gossip"
+	"github.com/republicprotocol/babble-go/core/gossip"
 	"google.golang.org/grpc"
 )
 
@@ -53,7 +53,7 @@ func (client *client) Send(ctx context.Context, to net.Addr, message gossip.Mess
 	}
 
 	return client.Call(ctx, func() error {
-		_, err = NewXoxoClient(conn).Send(ctx, request)
+		_, err = NewBabbleClient(conn).Send(ctx, request)
 		return err
 	})
 }
@@ -74,7 +74,7 @@ func NewService(server gossip.Server) Service {
 
 // Register the service to a `grpc.Server`.
 func (service *Service) Register(server *grpc.Server) {
-	RegisterXoxoServer(server, service)
+	RegisterBabbleServer(server, service)
 }
 
 // Send implements the respective gRPC call.

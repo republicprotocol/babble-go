@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"net"
 
-	"github.com/republicprotocol/xoxo-go/core/addr"
-	"github.com/republicprotocol/xoxo-go/core/gossip"
+	"github.com/republicprotocol/babble-go/core/addr"
+	"github.com/republicprotocol/babble-go/core/gossip"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/util"
 )

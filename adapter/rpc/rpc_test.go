@@ -10,16 +10,16 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	. "github.com/republicprotocol/xoxo-go/adapter/rpc"
+	. "github.com/republicprotocol/babble-go/adapter/rpc"
 
 	"github.com/republicprotocol/co-go"
-	"github.com/republicprotocol/xoxo-go/core/addr"
-	"github.com/republicprotocol/xoxo-go/core/gossip"
-	"github.com/republicprotocol/xoxo-go/testutils"
+	"github.com/republicprotocol/babble-go/core/addr"
+	"github.com/republicprotocol/babble-go/core/gossip"
+	"github.com/republicprotocol/babble-go/testutils"
 	"google.golang.org/grpc"
 )
 
-var _ = Describe("grpc", func() {
+var _ = Describe("gRPC", func() {
 
 	initService := func(α, n int) ([]gossip.Client, []gossip.Store, []*grpc.Server, []net.Listener) {
 		clients := make([]gossip.Client, n)
@@ -70,10 +70,10 @@ var _ = Describe("grpc", func() {
 		rand.Seed(time.Now().UnixNano())
 	})
 
-	for _, failureRate := range []int{0, 10, 20} { // percentage
+	for _, failureRate := range []int{0, 5, 10} { // percentage
 		failureRate := failureRate
-		Context("when sending message via grpc", func() {
-			It("should receive the message and broadcast the message if it's new", func() {
+		Context("when sending message", func() {
+			It("should receive and broadcast the message", func() {
 				numberOfTestNodes := 48
 				numberOfMessages := 12
 				numberOfFaultyNodes := numberOfTestNodes * failureRate / 100
@@ -123,7 +123,7 @@ var _ = Describe("grpc", func() {
 
 					Expect(clients[sender].Send(ctx, to, message)).ShouldNot(HaveOccurred())
 				}
-				time.Sleep(3 * time.Second)
+				time.Sleep(time.Second)
 
 				// Check how many nodes have got the message
 				for _, message := range messages {

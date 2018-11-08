@@ -94,64 +94,64 @@ var _ grpc.ClientConn
 // is compatible with the grpc package it is being compiled against.
 const _ = grpc.SupportPackageIsVersion4
 
-// Client API for Xoxo service
+// Client API for Babble service
 
-type XoxoClient interface {
+type BabbleClient interface {
 	Send(ctx context.Context, in *SendRequest, opts ...grpc.CallOption) (*SendResponse, error)
 }
 
-type xoxoClient struct {
+type babbleClient struct {
 	cc *grpc.ClientConn
 }
 
-func NewXoxoClient(cc *grpc.ClientConn) XoxoClient {
-	return &xoxoClient{cc}
+func NewBabbleClient(cc *grpc.ClientConn) BabbleClient {
+	return &babbleClient{cc}
 }
 
-func (c *xoxoClient) Send(ctx context.Context, in *SendRequest, opts ...grpc.CallOption) (*SendResponse, error) {
+func (c *babbleClient) Send(ctx context.Context, in *SendRequest, opts ...grpc.CallOption) (*SendResponse, error) {
 	out := new(SendResponse)
-	err := grpc.Invoke(ctx, "/rpc.Xoxo/Send", in, out, c.cc, opts...)
+	err := grpc.Invoke(ctx, "/rpc.Babble/Send", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// Server API for Xoxo service
+// Server API for Babble service
 
-type XoxoServer interface {
+type BabbleServer interface {
 	Send(context.Context, *SendRequest) (*SendResponse, error)
 }
 
-func RegisterXoxoServer(s *grpc.Server, srv XoxoServer) {
-	s.RegisterService(&_Xoxo_serviceDesc, srv)
+func RegisterBabbleServer(s *grpc.Server, srv BabbleServer) {
+	s.RegisterService(&_Babble_serviceDesc, srv)
 }
 
-func _Xoxo_Send_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Babble_Send_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(SendRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(XoxoServer).Send(ctx, in)
+		return srv.(BabbleServer).Send(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/rpc.Xoxo/Send",
+		FullMethod: "/rpc.Babble/Send",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(XoxoServer).Send(ctx, req.(*SendRequest))
+		return srv.(BabbleServer).Send(ctx, req.(*SendRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-var _Xoxo_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "rpc.Xoxo",
-	HandlerType: (*XoxoServer)(nil),
+var _Babble_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "rpc.Babble",
+	HandlerType: (*BabbleServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "Send",
-			Handler:    _Xoxo_Send_Handler,
+			Handler:    _Babble_Send_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -6,10 +6,10 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	. "github.com/republicprotocol/xoxo-go/core/addr"
+	. "github.com/republicprotocol/babble-go/core/addr"
 
 	"github.com/republicprotocol/co-go"
-	"github.com/republicprotocol/xoxo-go/testutils"
+	"github.com/republicprotocol/babble-go/testutils"
 )
 
 func init() {

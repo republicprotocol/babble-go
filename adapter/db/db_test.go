@@ -8,9 +8,9 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	. "github.com/republicprotocol/xoxo-go/adapter/db"
+	. "github.com/republicprotocol/babble-go/adapter/db"
 
-	"github.com/republicprotocol/xoxo-go/core/gossip"
+	"github.com/republicprotocol/babble-go/core/gossip"
 	"github.com/syndtr/goleveldb/leveldb"
 )
 

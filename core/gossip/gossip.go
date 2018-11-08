@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/republicprotocol/co-go"
-	"github.com/republicprotocol/xoxo-go/core/addr"
+	"github.com/republicprotocol/babble-go/core/addr"
 )
 
 // A Signer can consume bytes and produce a signature for those bytes. This

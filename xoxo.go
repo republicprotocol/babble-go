@@ -1,10 +1,10 @@
-package xoxo
+package babble
 
 import (
-	"github.com/republicprotocol/xoxo-go/adapter/db"
-	"github.com/republicprotocol/xoxo-go/adapter/rpc"
-	"github.com/republicprotocol/xoxo-go/core/addr"
-	"github.com/republicprotocol/xoxo-go/core/gossip"
+	"github.com/republicprotocol/babble-go/adapter/db"
+	"github.com/republicprotocol/babble-go/adapter/rpc"
+	"github.com/republicprotocol/babble-go/core/addr"
+	"github.com/republicprotocol/babble-go/core/gossip"
 )
 
 type (

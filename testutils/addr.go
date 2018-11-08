@@ -7,8 +7,8 @@ import (
 	"net"
 	"sync"
 
-	"github.com/republicprotocol/xoxo-go/core/addr"
-	"github.com/republicprotocol/xoxo-go/core/gossip"
+	"github.com/republicprotocol/babble-go/core/addr"
+	"github.com/republicprotocol/babble-go/core/gossip"
 )
 
 // MockStore is a mock implementation of the `addr.Store`
