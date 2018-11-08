@@ -74,10 +74,11 @@ func (book *book) Addrs(α int) ([]net.Addr, error) {
 	numAddrs := 0
 	addrs := make([]net.Addr, 0, α)
 	for _, addr := range book.addrsCache {
-		addrs = append(addrs, addr)
-		if numAddrs++; numAddrs >= α {
+		if numAddrs >= α {
 			return addrs, nil
 		}
+		addrs = append(addrs, addr)
+		numAddrs++
 	}
 
 	return addrs, nil

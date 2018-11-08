@@ -8,8 +8,8 @@ import (
 	. "github.com/onsi/gomega"
 	. "github.com/republicprotocol/babble-go/core/addr"
 
-	"github.com/republicprotocol/co-go"
 	"github.com/republicprotocol/babble-go/testutils"
+	"github.com/republicprotocol/co-go"
 )
 
 func init() {
@@ -56,7 +56,7 @@ var _ = Describe("Store", func() {
 
 	Context("when looking up addresses", func() {
 
-		It("should be able to return α random addresses when initialized with an empty Store", func() {
+		It("should be able to return α random addresses when initialized with an empty store", func() {
 			book := newEmptyBook()
 			lookupMap := map[string]int{}
 			numberOfTestAddrs := 100
