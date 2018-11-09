@@ -8,15 +8,16 @@ import (
 )
 
 type (
-	Gossiper  = gossip.Gossiper
-	Message   = gossip.Message
-	Client    = gossip.Client
-	Signer    = gossip.Signer
-	Observer  = gossip.Observer
-	Verifier  = gossip.Verifier
-	Store     = gossip.Store
-	AddrStore = addr.Store
-	Book      = addr.Book
+	Gossiper     = gossip.Gossiper
+	Message      = gossip.Message
+	Client       = gossip.Client
+	Signer       = gossip.Signer
+	Observer     = gossip.Observer
+	Verifier     = gossip.Verifier
+	AddrStore    = addr.Store
+	Book         = addr.Book
+	MessageStore = gossip.MessageStore
+	Store        = gossip.Store
 )
 
 var (

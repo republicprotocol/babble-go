@@ -74,13 +74,13 @@ func (store *AddrStore) Addrs() ([]net.Addr, error) {
 	return addrs, iter.Error()
 }
 
-// A MessageStore uses LevelDB to store Messages to persistent storage.
+// A MessageStore uses LevelDB to store MessageStore to persistent storage.
 type MessageStore struct {
 	db *leveldb.DB
 }
 
 // NewMessageStore returns a new MessageStore.
-func NewMessageStore(db *leveldb.DB) gossip.Store {
+func NewMessageStore(db *leveldb.DB) gossip.MessageStore {
 	return &AddrStore{db}
 }
 
