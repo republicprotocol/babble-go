@@ -6,7 +6,6 @@ import (
 	"net"
 	"time"
 
-	"github.com/republicprotocol/babble-go/core/addr"
 	"github.com/republicprotocol/co-go"
 )
 
@@ -56,19 +55,17 @@ type gossiper struct {
 	verifier Verifier
 	observer Observer
 	client   Client
-	book     addr.Book
 	store    Store
 }
 
 // NewGossiper returns a new gosspier.
-func NewGossiper(α int, signer Signer, verifier Verifier, observer Observer, client Client, book addr.Book, store Store) Gossiper {
+func NewGossiper(α int, signer Signer, verifier Verifier, observer Observer, client Client, store Store) Gossiper {
 	return &gossiper{
 		α:        α,
 		signer:   signer,
 		verifier: verifier,
 		observer: observer,
 		client:   client,
-		book:     book,
 		store:    store,
 	}
 }
@@ -113,7 +110,7 @@ func (gossiper *gossiper) broadcast(ctx context.Context, message Message, sign b
 		message.Signature = signature
 	}
 
-	addrs, err := gossiper.book.Addrs(gossiper.α)
+	addrs, err := gossiper.store.Addrs(gossiper.α)
 	if err != nil {
 		return err
 	}

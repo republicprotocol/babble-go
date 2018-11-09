@@ -29,9 +29,9 @@ var _ = Describe("gRPC", func() {
 		for i := 0; i < n; i++ {
 			clients[i] = NewClient(testutils.MockDialer{}, testutils.MockCaller{})
 
-			stores[i] = testutils.NewMockStore()
 			book, err := addr.NewBook(testutils.NewMockAddrs())
 			Expect(err).ShouldNot(HaveOccurred())
+			stores[i] = gossip.NewStore(testutils.NewMockMessages(), book)
 			for j := 0; j < n; j++ {
 				if i == j {
 					continue
@@ -41,7 +41,7 @@ var _ = Describe("gRPC", func() {
 				Expect(book.InsertAddr(addr)).ShouldNot(HaveOccurred())
 			}
 
-			gossiper := gossip.NewGossiper(α, testutils.MockSinger{}, testutils.MockVerifier{}, nil, clients[i], book, stores[i])
+			gossiper := gossip.NewGossiper(α, testutils.MockSinger{}, testutils.MockVerifier{}, nil, clients[i], stores[i])
 			service := NewService(gossiper)
 			servers[i] = grpc.NewServer()
 			service.Register(servers[i])

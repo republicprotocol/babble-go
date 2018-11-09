@@ -11,23 +11,23 @@ import (
 	"github.com/republicprotocol/babble-go/core/gossip"
 )
 
-// MockStore is a mock implementation of the `addr.Store`
-type MockStore struct {
+// MockAddr is a mock implementation of the `addr.Store`
+type MockAddr struct {
 	addresses map[string]net.Addr
 }
 
 func NewMockAddrs() addr.Store {
-	return MockStore{
+	return MockAddr{
 		addresses: map[string]net.Addr{},
 	}
 }
 
-func (store MockStore) InsertAddr(addr net.Addr) error {
+func (store MockAddr) InsertAddr(addr net.Addr) error {
 	store.addresses[addr.String()] = addr
 	return nil
 }
 
-func (store MockStore) Addrs() ([]net.Addr, error) {
+func (store MockAddr) Addrs() ([]net.Addr, error) {
 	addresses := make([]net.Addr, 0, len(store.addresses))
 	for _, j := range store.addresses {
 		addresses = append(addresses, j)
@@ -36,19 +36,19 @@ func (store MockStore) Addrs() ([]net.Addr, error) {
 	return addresses, nil
 }
 
-type mockStore struct {
+type MockMessages struct {
 	messageMu *sync.Mutex
 	messages  map[string]gossip.Message
 }
 
-func NewMockStore() mockStore {
-	return mockStore{
+func NewMockMessages() MockMessages {
+	return MockMessages{
 		messageMu: new(sync.Mutex),
 		messages:  map[string]gossip.Message{},
 	}
 }
 
-func (store mockStore) InsertMessage(message gossip.Message) error {
+func (store MockMessages) InsertMessage(message gossip.Message) error {
 	store.messageMu.Lock()
 	defer store.messageMu.Unlock()
 	store.messages[string(message.Key)] = message
@@ -56,7 +56,7 @@ func (store mockStore) InsertMessage(message gossip.Message) error {
 	return nil
 }
 
-func (store mockStore) Message(key []byte) (gossip.Message, error) {
+func (store MockMessages) Message(key []byte) (gossip.Message, error) {
 	store.messageMu.Lock()
 	defer store.messageMu.Unlock()
 

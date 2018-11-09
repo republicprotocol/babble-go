@@ -67,18 +67,12 @@ func (book *book) Addrs(α int) ([]net.Addr, error) {
 	book.addrsMu.RLock()
 	defer book.addrsMu.RUnlock()
 
-	if α > len(book.addrsCache) {
-		α = len(book.addrsCache)
-	}
-
-	numAddrs := 0
 	addrs := make([]net.Addr, 0, α)
 	for _, addr := range book.addrsCache {
-		if numAddrs >= α {
+		if len(addrs) >= α {
 			return addrs, nil
 		}
 		addrs = append(addrs, addr)
-		numAddrs++
 	}
 
 	return addrs, nil
