@@ -9,6 +9,7 @@ import (
 
 type (
 	Gossiper = gossip.Gossiper
+	Observer = gossip.Observer
 	Message  = gossip.Message
 )
 
