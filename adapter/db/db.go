@@ -4,62 +4,60 @@ import (
 	"encoding/json"
 	"net"
 
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/republicprotocol/babble-go/core/addr"
 	"github.com/republicprotocol/babble-go/core/gossip"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/util"
 )
 
-// Addr stores an address `Value` couple with a `Net`.
 type Addr struct {
 	Net   string `json:"net"`
 	Value string `json:"value"`
 }
 
-// NewAddr returns a new `net.Addr`.
 func NewAddr(net, value string) net.Addr {
 	return Addr{
 		net, value,
 	}
 }
 
-// Network implements the `net.Addr` interface.
 func (addr Addr) Network() string {
 	return addr.Net
 }
 
-// String implements the `net.Addr` interface.
 func (addr Addr) String() string {
 	return addr.Value
 }
 
-// An AddrStore uses LevelDB to store Addrs to persistent storage. It is a basic
-// implementation of the `addr.Store` with no explicit in-memory cache, and no
-// optimisations for returning random information.
-type AddrStore struct {
-	db *leveldb.DB
+// A Db uses LevelDB to store Addrs to persistent storage. It is a basic
+// implementation of the `addr.Store` with no explicit in-memory cache.
+type Db interface {
+	addr.Addrs
+	gossip.Messages
 }
 
-// NewAddrStore returns a new AddrStore.
-func NewAddrStore(db *leveldb.DB) addr.Store {
-	return &AddrStore{db}
+type db struct {
+	ldb *leveldb.DB
 }
 
-// InsertAddr implements the `gossip.AddrStore` interface.
-func (store *AddrStore) InsertAddr(addr net.Addr) error {
-	data, err := json.Marshal(NewAddr(
-		addr.Network(),
-		addr.String(),
-	))
+// New Db that uses LevelDB for simple persistent storage.
+func New(ldb *leveldb.DB) Db {
+	return &db{ldb}
+}
+
+// InsertAddr implements the `addr.Addrs` interface.
+func (db *db) InsertAddr(addr net.Addr) error {
+	data, err := json.Marshal(NewAddr(addr.Network(), addr.String()))
 	if err != nil {
 		return err
 	}
-	return store.db.Put(data, []byte{}, nil)
+	return db.ldb.Put(keyForAddrs(data), data, nil)
 }
 
-// Addrs implements the `gossip.AddrStore` interface.
-func (store *AddrStore) Addrs() ([]net.Addr, error) {
-	iter := store.db.NewIterator(&util.Range{Start: nil, Limit: nil}, nil)
+// Addrs implements the `addr.Addrs` interface.
+func (db *db) Addrs() ([]net.Addr, error) {
+	iter := store.db.NewIterator(&util.Range{Start: append(keyPrefixForAddrs(), keyIterBegin()...), Limit: append(keyPrefixForAddrs(), keyIterEnd()...)}, nil)
 	defer iter.Release()
 
 	addrs := make([]net.Addr, 0)
@@ -74,29 +72,19 @@ func (store *AddrStore) Addrs() ([]net.Addr, error) {
 	return addrs, iter.Error()
 }
 
-// A MessageStore uses LevelDB to store MessageStore to persistent storage.
-type MessageStore struct {
-	db *leveldb.DB
-}
-
-// NewMessageStore returns a new MessageStore.
-func NewMessageStore(db *leveldb.DB) gossip.MessageStore {
-	return &AddrStore{db}
-}
-
-// InsertMessage implements the `gossip.MessageStore` interface.
-func (store *AddrStore) InsertMessage(message gossip.Message) error {
+// InsertMessage implements the `gossip.Messages` interface.
+func (db *db) InsertMessage(message gossip.Message) error {
 	data, err := json.Marshal(message)
 	if err != nil {
 		return err
 	}
-	return store.db.Put(message.Key, data, nil)
+	return db.ldb.Put(keyForMessages(message.Key), data, nil)
 }
 
-// Message implements the `gossip.MessageStore` interface.
-func (store *AddrStore) Message(key []byte) (gossip.Message, error) {
+// Message implements the `gossip.Messages` interface.
+func (db *db) Message(key []byte) (gossip.Message, error) {
 	message := gossip.Message{}
-	data, err := store.db.Get(key, nil)
+	data, err := db.ldb.Get(keyForMessages(key), nil)
 	if err != nil {
 		if err == leveldb.ErrNotFound {
 			err = nil
@@ -104,6 +92,29 @@ func (store *AddrStore) Message(key []byte) (gossip.Message, error) {
 		return message, err
 	}
 	err = json.Unmarshal(data, &message)
-
 	return message, err
+}
+
+func keyPrefixForMessages() []byte {
+	return []byte{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}
+}
+
+func keyForMessages(key []byte) []byte {
+	return append(keyPrefixForMessage(), crypto.Keccak(key)...)
+}
+
+func keyPrefixForAddrs() []byte {
+	return []byte{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01}
+}
+
+func keyForAddrs(key []byte) []byte {
+	return append(keyForAddrs(), crypto.Keccak(key)...)
+}
+
+func keyIterBegin() []byte {
+	return []byte{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}
+}
+
+func keyIterEnd() []byte {
+	return []byte{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}
 }

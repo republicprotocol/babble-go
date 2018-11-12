@@ -5,9 +5,9 @@ import (
 	"sync"
 )
 
-// Store is used to store and lookup all known `net.Addr`. It is not assumed
+// Addrs is used to store and lookup all known `net.Addr`. It is not assumed
 // that this interface is safe for concurrent use.
-type Store interface {
+type Addrs interface {
 
 	// Insert a new Addr to the store.
 	InsertAddr(net.Addr) error
@@ -30,26 +30,26 @@ type Book interface {
 
 type book struct {
 	addrsMu    *sync.RWMutex
-	addrsStore Store
 	addrsCache map[string]net.Addr
+	addrs      Addrs
 }
 
 // NewBook returns a new Book with given addr Store.
-func NewBook(store Store) (Book, error) {
-	addrs, err := store.Addrs()
+func NewBook(addrs Addrs) (Book, error) {
+	allKnownAddrs, err := addrs.Addrs()
 	if err != nil {
 		return nil, err
 	}
 
-	addrsCache := make(map[string]net.Addr, len(addrs))
-	for _, addr := range addrs {
+	addrsCache := make(map[string]net.Addr, len(allKnownAddrs))
+	for _, addr := range allKnownAddrs {
 		addrsCache[addr.String()] = addr
 	}
 
 	return &book{
 		addrsMu:    new(sync.RWMutex),
-		addrsStore: store,
 		addrsCache: addrsCache,
+		addrs:      addrs,
 	}, nil
 }
 
@@ -59,7 +59,7 @@ func (book *book) InsertAddr(addr net.Addr) error {
 	defer book.addrsMu.Unlock()
 
 	book.addrsCache[addr.String()] = addr
-	return book.addrsStore.InsertAddr(addr)
+	return book.addrs.InsertAddr(addr)
 }
 
 // Addrs implements Store interface.
