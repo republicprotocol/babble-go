@@ -16,3 +16,17 @@ type Message struct {
 func NewMessage(nonce uint64, key, value, signature []byte) Message {
 	return Message{nonce, key, value, signature}
 }
+
+// Messages is used to read and write Messages to persistent storage.
+type Messages interface {
+
+	// InsertMessage into the MessageStore. If there is an existing Message
+	// with the same key, but a lower nonce, then the existing Message will
+	// be overwritten.
+	InsertMessage(message Message) error
+
+	// Message returns a previously inserted Message associated with the key.
+	// It returns an empty message with zero nonce if there is no message with
+	// the associated key in the store.
+	Message(key []byte) (Message, error)
+}

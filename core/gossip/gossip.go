@@ -6,6 +6,7 @@ import (
 	"net"
 	"time"
 
+	"github.com/republicprotocol/babble-go/core/addr"
 	"github.com/republicprotocol/co-go"
 )
 
@@ -50,23 +51,27 @@ type Gossiper interface {
 }
 
 type gossiper struct {
+	addrBook addr.Book
 	α        int
+
 	signer   Signer
 	verifier Verifier
 	observer Observer
 	client   Client
-	store    Store
+	messages Messages
 }
 
 // NewGossiper returns a new gosspier.
-func NewGossiper(α int, signer Signer, verifier Verifier, observer Observer, client Client, store Store) Gossiper {
+func NewGossiper(addrBook addr.Book, α int, signer Signer, verifier Verifier, observer Observer, client Client, messages Messages) Gossiper {
 	return &gossiper{
+		addrBook: addrBook,
 		α:        α,
+
 		signer:   signer,
 		verifier: verifier,
 		observer: observer,
 		client:   client,
-		store:    store,
+		messages: messages,
 	}
 }
 
@@ -81,14 +86,14 @@ func (gossiper *gossiper) Receive(ctx context.Context, message Message) error {
 		return err
 	}
 
-	previousMessage, err := gossiper.store.Message(message.Key)
+	previousMessage, err := gossiper.messages.Message(message.Key)
 	if err != nil {
 		return err
 	}
 	if previousMessage.Nonce >= message.Nonce {
 		return nil
 	}
-	if err := gossiper.store.InsertMessage(message); err != nil {
+	if err := gossiper.messages.InsertMessage(message); err != nil {
 		return err
 	}
 
@@ -110,7 +115,7 @@ func (gossiper *gossiper) broadcast(ctx context.Context, message Message, sign b
 		message.Signature = signature
 	}
 
-	addrs, err := gossiper.store.Addrs(gossiper.α)
+	addrs, err := gossiper.addrBook.Addrs(gossiper.α)
 	if err != nil {
 		return err
 	}
