@@ -2,6 +2,7 @@ package gossip
 
 import (
 	"context"
+	"github.com/republicprotocol/babble-go/core/addr"
 	"log"
 	"net"
 	"time"
@@ -21,14 +22,14 @@ type Verifier interface {
 	Verify(data []byte, signature []byte) error
 }
 
-// A Client is used to send Store to a remote Server.
+// A Client is used to send Message to a remote Server.
 type Client interface {
 
 	// Send a Message to the a remote `net.Addr`.
 	Send(ctx context.Context, to net.Addr, message Message) error
 }
 
-// A Server receives Store.
+// A Server receives Message.
 type Server interface {
 
 	// Receive is called to notify the Server that a Message has been received
@@ -36,16 +37,18 @@ type Server interface {
 	Receive(ctx context.Context, message Message) error
 }
 
-// An Observer is notified whenever a new Message, or an update to an existing
-// Message, is received.
-type Observer interface {
+// An Notifier notifies the sender of the Message when the received Message is
+// new, or an update to an existing Message.
+type Notifier interface {
 	Notify(ctx context.Context, message Message) error
 }
 
 // Gossiper is a participant in the gossip network. It can receive message and
 // broadcast new message to the network.
 type Gossiper interface {
+
 	Server
+
 	Broadcast(ctx context.Context, message Message) error
 }
 
@@ -53,20 +56,22 @@ type gossiper struct {
 	α        int
 	signer   Signer
 	verifier Verifier
-	observer Observer
+	notifier Notifier
 	client   Client
-	store    Store
+	store    MessageStore
+	book     addr.Book
 }
 
-// NewGossiper returns a new gosspier.
-func NewGossiper(α int, signer Signer, verifier Verifier, observer Observer, client Client, store Store) Gossiper {
+// NewGossiper returns a new `Gossiper`.
+func NewGossiper(α int, signer Signer, verifier Verifier, notifier Notifier, client Client, store MessageStore, book addr.Book) Gossiper {
 	return &gossiper{
 		α:        α,
 		signer:   signer,
 		verifier: verifier,
-		observer: observer,
+		notifier: notifier,
 		client:   client,
 		store:    store,
+		book : book,
 	}
 }
 
@@ -92,8 +97,8 @@ func (gossiper *gossiper) Receive(ctx context.Context, message Message) error {
 		return err
 	}
 
-	if gossiper.observer != nil {
-		if err := gossiper.observer.Notify(ctx, message); err != nil {
+	if gossiper.notifier != nil {
+		if err := gossiper.notifier.Notify(ctx, message); err != nil {
 			return err
 		}
 	}
@@ -110,11 +115,12 @@ func (gossiper *gossiper) broadcast(ctx context.Context, message Message, sign b
 		message.Signature = signature
 	}
 
-	addrs, err := gossiper.store.Addrs(gossiper.α)
+	addrs, err := gossiper.book.Addrs(gossiper.α)
 	if err != nil {
 		return err
 	}
 
+	// Broadcast the new message to the selected α net.Addrs in the background.
 	go co.ForAll(addrs, func(i int) {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 		defer cancel()

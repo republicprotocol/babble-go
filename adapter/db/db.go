@@ -33,20 +33,20 @@ func (addr Addr) String() string {
 	return addr.Value
 }
 
-// An AddrStore uses LevelDB to store Addrs to persistent storage. It is a basic
+// An addrStore uses LevelDB to store Addrs to persistent storage. It is a basic
 // implementation of the `addr.Store` with no explicit in-memory cache, and no
 // optimisations for returning random information.
-type AddrStore struct {
+type addrStore struct {
 	db *leveldb.DB
 }
 
-// NewAddrStore returns a new AddrStore.
+// NewAddrStore returns a new addrStore.
 func NewAddrStore(db *leveldb.DB) addr.Store {
-	return &AddrStore{db}
+	return &addrStore{db}
 }
 
-// InsertAddr implements the `gossip.AddrStore` interface.
-func (store *AddrStore) InsertAddr(addr net.Addr) error {
+// InsertAddr implements the `gossip.addrStore` interface.
+func (store *addrStore) InsertAddr(addr net.Addr) error {
 	data, err := json.Marshal(NewAddr(
 		addr.Network(),
 		addr.String(),
@@ -57,8 +57,8 @@ func (store *AddrStore) InsertAddr(addr net.Addr) error {
 	return store.db.Put(data, []byte{}, nil)
 }
 
-// Addrs implements the `gossip.AddrStore` interface.
-func (store *AddrStore) Addrs() ([]net.Addr, error) {
+// Addrs implements the `gossip.addrStore` interface.
+func (store *addrStore) Addrs() ([]net.Addr, error) {
 	iter := store.db.NewIterator(&util.Range{Start: nil, Limit: nil}, nil)
 	defer iter.Release()
 
@@ -75,17 +75,17 @@ func (store *AddrStore) Addrs() ([]net.Addr, error) {
 }
 
 // A MessageStore uses LevelDB to store MessageStore to persistent storage.
-type MessageStore struct {
+type messageStore struct {
 	db *leveldb.DB
 }
 
 // NewMessageStore returns a new MessageStore.
 func NewMessageStore(db *leveldb.DB) gossip.MessageStore {
-	return &AddrStore{db}
+	return &messageStore{db}
 }
 
 // InsertMessage implements the `gossip.MessageStore` interface.
-func (store *AddrStore) InsertMessage(message gossip.Message) error {
+func (store *messageStore) InsertMessage(message gossip.Message) error {
 	data, err := json.Marshal(message)
 	if err != nil {
 		return err
@@ -94,7 +94,7 @@ func (store *AddrStore) InsertMessage(message gossip.Message) error {
 }
 
 // Message implements the `gossip.MessageStore` interface.
-func (store *AddrStore) Message(key []byte) (gossip.Message, error) {
+func (store *messageStore) Message(key []byte) (gossip.Message, error) {
 	message := gossip.Message{}
 	data, err := store.db.Get(key, nil)
 	if err != nil {

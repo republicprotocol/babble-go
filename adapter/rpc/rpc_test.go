@@ -3,6 +3,8 @@ package rpc_test
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
+	"log"
 	"math/rand"
 	"net"
 	"time"
@@ -126,6 +128,7 @@ var _ = Describe("gRPC", func() {
 				time.Sleep(time.Second)
 
 				// Check how many nodes have got the message
+				log.SetOutput(ioutil.Discard)
 				for _, message := range messages {
 					received := 0
 					for _, store := range stores {

@@ -29,9 +29,9 @@ type Book interface {
 }
 
 type book struct {
-	addrsMu    *sync.RWMutex
-	addrsStore Store
-	addrsCache map[string]net.Addr
+	mu    *sync.RWMutex
+	store Store
+	cache map[string]net.Addr
 }
 
 // NewBook returns a new Book with given addr Store.
@@ -41,34 +41,34 @@ func NewBook(store Store) (Book, error) {
 		return nil, err
 	}
 
-	addrsCache := make(map[string]net.Addr, len(addrs))
+	cache := make(map[string]net.Addr, len(addrs))
 	for _, addr := range addrs {
-		addrsCache[addr.String()] = addr
+		cache[addr.String()] = addr
 	}
 
 	return &book{
-		addrsMu:    new(sync.RWMutex),
-		addrsStore: store,
-		addrsCache: addrsCache,
+		mu:    new(sync.RWMutex),
+		store: store,
+		cache: cache,
 	}, nil
 }
 
-// InsertAddr implements Store interface.
+// InsertAddr implements `Store` interface.
 func (book *book) InsertAddr(addr net.Addr) error {
-	book.addrsMu.Lock()
-	defer book.addrsMu.Unlock()
+	book.mu.Lock()
+	defer book.mu.Unlock()
 
-	book.addrsCache[addr.String()] = addr
-	return book.addrsStore.InsertAddr(addr)
+	book.cache[addr.String()] = addr
+	return book.store.InsertAddr(addr)
 }
 
-// Addrs implements Store interface.
+// Addrs implements `Store` interface.
 func (book *book) Addrs(α int) ([]net.Addr, error) {
-	book.addrsMu.RLock()
-	defer book.addrsMu.RUnlock()
+	book.mu.RLock()
+	defer book.mu.RUnlock()
 
 	addrs := make([]net.Addr, 0, α)
-	for _, addr := range book.addrsCache {
+	for _, addr := range book.cache {
 		if len(addrs) >= α {
 			return addrs, nil
 		}
