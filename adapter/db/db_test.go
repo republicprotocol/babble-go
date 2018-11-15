@@ -32,10 +32,10 @@ var _ = Describe("LevelDB storage", func() {
 
 	Context("when adding new address", func() {
 		It("should store new address", func() {
-			db, err := leveldb.OpenFile(addrDbFile, nil)
+			ldb, err := leveldb.OpenFile(addrDbFile, nil)
 			Expect(err).ShouldNot(HaveOccurred())
-			defer db.Close()
-			store := NewAddrStore(db)
+			defer ldb.Close()
+			store := New(ldb)
 
 			addrs := testAddresses()
 			lookup := map[string]bool{}
@@ -64,10 +64,10 @@ var _ = Describe("LevelDB storage", func() {
 
 	Context("when storing new messages ", func() {
 		It("should store new message ", func() {
-			db, err := leveldb.OpenFile(messageDbFile, nil)
+			ldb, err := leveldb.OpenFile(messageDbFile, nil)
 			Expect(err).ShouldNot(HaveOccurred())
-			defer db.Close()
-			store := NewMessageStore(db)
+			defer ldb.Close()
+			store := New(ldb)
 
 			messages := testMessages()
 			for _, message := range messages {
@@ -84,10 +84,10 @@ var _ = Describe("LevelDB storage", func() {
 
 	Context("when reading messages ", func() {
 		It("should return empty message and nil error when reading something not in the store  ", func() {
-			db, err := leveldb.OpenFile(messageDbFile, nil)
+			ldb, err := leveldb.OpenFile(messageDbFile, nil)
 			Expect(err).ShouldNot(HaveOccurred())
-			defer db.Close()
-			store := NewMessageStore(db)
+			defer ldb.Close()
+			store := New(ldb)
 
 			messages := testMessages()
 			for _, message := range messages {

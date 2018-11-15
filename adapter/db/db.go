@@ -57,13 +57,13 @@ func (db *db) InsertAddr(addr net.Addr) error {
 
 // Addrs implements the `addr.Addrs` interface.
 func (db *db) Addrs() ([]net.Addr, error) {
-	iter := store.db.NewIterator(&util.Range{Start: append(keyPrefixForAddrs(), keyIterBegin()...), Limit: append(keyPrefixForAddrs(), keyIterEnd()...)}, nil)
+	iter := db.ldb.NewIterator(&util.Range{Start: append(keyPrefixForAddrs(), keyIterBegin()...), Limit: append(keyPrefixForAddrs(), keyIterEnd()...)}, nil)
 	defer iter.Release()
 
 	addrs := make([]net.Addr, 0)
 	for iter.Next() {
 		addr := Addr{}
-		if err := json.Unmarshal(iter.Key(), &addr); err != nil {
+		if err := json.Unmarshal(iter.Value(), &addr); err != nil {
 			return nil, err
 		}
 		addrs = append(addrs, addr)
@@ -99,16 +99,16 @@ func keyPrefixForMessages() []byte {
 	return []byte{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}
 }
 
-func keyForMessages(key []byte) []byte {
-	return append(keyPrefixForMessage(), crypto.Keccak(key)...)
-}
-
 func keyPrefixForAddrs() []byte {
 	return []byte{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01}
 }
 
+func keyForMessages(key []byte) []byte {
+	return append(keyPrefixForMessages(), crypto.Keccak256(key)...)
+}
+
 func keyForAddrs(key []byte) []byte {
-	return append(keyForAddrs(), crypto.Keccak(key)...)
+	return append(keyPrefixForAddrs(), crypto.Keccak256(key)...)
 }
 
 func keyIterBegin() []byte {
