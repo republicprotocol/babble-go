@@ -20,12 +20,10 @@ type (
 )
 
 var (
-	NewAddrs        = db.NewAddrs
-	NewMessageStore = db.NewMessages
-	NewBook         = addr.NewBook
-	NewStore        = gossip.NewStore
-	NewGossiper     = gossip.NewGossiper
-	NewMessage      = gossip.NewMessage
-	NewRPCClient    = rpc.NewClient
-	NewRPCService   = rpc.NewService
+	NewDb         = db.New
+	NewBook       = addr.NewBook
+	NewGossiper   = gossip.NewGossiper
+	NewMessage    = gossip.NewMessage
+	NewRPCClient  = rpc.NewClient
+	NewRPCService = rpc.NewService
 )
