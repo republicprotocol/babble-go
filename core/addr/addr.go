@@ -53,7 +53,7 @@ func NewBook(store Store) (Book, error) {
 	}, nil
 }
 
-// InsertAddr implements `Store` interface.
+// InsertAddr implements `Book` interface.
 func (book *book) InsertAddr(addr net.Addr) error {
 	book.mu.Lock()
 	defer book.mu.Unlock()
@@ -62,7 +62,7 @@ func (book *book) InsertAddr(addr net.Addr) error {
 	return book.store.InsertAddr(addr)
 }
 
-// Addrs implements `Store` interface.
+// Addrs implements `Book` interface.
 func (book *book) Addrs(α int) ([]net.Addr, error) {
 	book.mu.RLock()
 	defer book.mu.RUnlock()
