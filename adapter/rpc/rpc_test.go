@@ -22,18 +22,18 @@ import (
 
 var _ = Describe("gRPC", func() {
 
-	init := func(α, n int) ([]gossip.Client, []gossip.Store, []*grpc.Server, []net.Listener) {
+	init := func(α, n int) ([]gossip.Client, []gossip.MessageStore, []*grpc.Server, []net.Listener) {
 		clients := make([]gossip.Client, n)
-		stores := make([]gossip.Store, n)
+		stores := make([]gossip.MessageStore, n)
 		servers := make([]*grpc.Server, n)
 		listeners := make([]net.Listener, n)
 
 		for i := 0; i < n; i++ {
 			clients[i] = NewClient(testutils.MockDialer{}, testutils.MockCaller{})
 
-			book, err := addr.NewBook(testutils.NewMockAddrs())
+			book, err := addr.NewBook(testutils.NewMockAddrStore())
 			Expect(err).ShouldNot(HaveOccurred())
-			stores[i] = gossip.NewStore(testutils.NewMockMessages(), book)
+			stores[i] = testutils.NewMockMessageStore()
 			for j := 0; j < n; j++ {
 				if i == j {
 					continue
@@ -43,7 +43,7 @@ var _ = Describe("gRPC", func() {
 				Expect(book.InsertAddr(addr)).ShouldNot(HaveOccurred())
 			}
 
-			gossiper := gossip.NewGossiper(α, testutils.MockSinger{}, testutils.MockVerifier{}, nil, clients[i], stores[i])
+			gossiper := gossip.NewGossiper(α, testutils.MockSinger{}, testutils.MockVerifier{}, nil, clients[i], stores[i],book)
 			service := NewService(gossiper)
 			servers[i] = grpc.NewServer()
 			service.Register(servers[i])

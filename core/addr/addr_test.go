@@ -19,7 +19,7 @@ func init() {
 var _ = Describe("Store", func() {
 
 	newEmptyBook := func() Book {
-		addrs := testutils.NewMockAddrs()
+		addrs := testutils.NewMockAddrStore()
 		book, err := NewBook(addrs)
 		Expect(err).ShouldNot(HaveOccurred())
 
@@ -70,7 +70,7 @@ var _ = Describe("Store", func() {
 		})
 
 		It("should be able to return α random addresses when initialized with an non-empty Store", func() {
-			addrs := testutils.NewMockAddrs()
+			addrs := testutils.NewMockAddrStore()
 			lookupMap := map[string]int{}
 			numberOfTestAddrs := 100
 			for i := 0; i < numberOfTestAddrs; i++ {

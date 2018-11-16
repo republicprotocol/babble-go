@@ -2,11 +2,11 @@ package gossip
 
 import (
 	"context"
-	"github.com/republicprotocol/babble-go/core/addr"
 	"log"
 	"net"
 	"time"
 
+	"github.com/republicprotocol/babble-go/core/addr"
 	"github.com/republicprotocol/co-go"
 )
 
@@ -46,7 +46,6 @@ type Notifier interface {
 // Gossiper is a participant in the gossip network. It can receive message and
 // broadcast new message to the network.
 type Gossiper interface {
-
 	Server
 
 	Broadcast(ctx context.Context, message Message) error
@@ -71,7 +70,7 @@ func NewGossiper(α int, signer Signer, verifier Verifier, notifier Notifier, cl
 		notifier: notifier,
 		client:   client,
 		store:    store,
-		book : book,
+		book:     book,
 	}
 }
 
