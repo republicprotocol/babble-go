@@ -10,6 +10,12 @@ import (
 	"github.com/republicprotocol/co-go"
 )
 
+// An Observer is notified whenever a new Message, or an update to an existing
+// Message, is received.
+type Observer interface {
+	Notify(message Message) error
+}
+
 // A Signer can consume bytes and produce a signature for those bytes. This
 // signature can be used by a Verifier to extract the signatory.
 type Signer interface {
@@ -35,12 +41,6 @@ type Server interface {
 	// Receive is called to notify the Server that a Message has been received
 	// from a remote Client.
 	Receive(ctx context.Context, message Message) error
-}
-
-// An Observer is notified whenever a new Message, or an update to an existing
-// Message, is received.
-type Observer interface {
-	Notify(ctx context.Context, message Message) error
 }
 
 // Gossiper is a participant in the gossip network. It can receive message and
@@ -98,7 +98,7 @@ func (gossiper *gossiper) Receive(ctx context.Context, message Message) error {
 	}
 
 	if gossiper.observer != nil {
-		if err := gossiper.observer.Notify(ctx, message); err != nil {
+		if err := gossiper.observer.Notify(message); err != nil {
 			return err
 		}
 	}
